@@ -3,29 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TitiBank Coin Live Data</title>
+  <title>TitiBank Data</title>
 
   <!-- Chart.js + Financial Plugin -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
 
   <style>
-    body { font-family: Arial, sans-serif; background:#e9edf5; padding:20px; color:#111; }
+    body { font-family: Arial, sans-serif; background:#e9edf5; padding:20px; color:#111; transition:0.3s; }
+    body.dark { background:#121212; color:#ddd; }
     h1 { color:#042a57; text-align:center; margin-bottom:20px; }
-    .card { background:#fff; padding:20px; border-radius:16px; box-shadow:0 8px 20px rgba(0,0,0,0.12); margin-bottom:20px; }
+    body.dark h1 { color:#4dabf7; }
+    .card { background:#fff; padding:20px; border-radius:16px; box-shadow:0 8px 20px rgba(0,0,0,0.12); margin-bottom:20px; transition:0.3s; }
+    body.dark .card { background:#1e1e1e; box-shadow:0 8px 20px rgba(0,0,0,0.4); }
     .stats { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; }
     .stat { flex:1; min-width:180px; background:#fafafa; padding:14px; border-radius:12px; text-align:center; transition:0.3s; }
-    .stat:hover { background:#f0f4ff; transform:scale(1.05); box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+    body.dark .stat { background:#2a2a2a; }
+    .stat:hover { transform:scale(1.05); box-shadow:0 4px 12px rgba(0,0,0,0.15); }
     .stat h3 { margin:0; font-size:15px; color:#042a57; font-weight:600; }
+    body.dark .stat h3 { color:#4dabf7; }
     .stat p { font-size:18px; font-weight:bold; margin:6px 0 0; }
     .mini-chart { height:60px; margin-top:10px; }
     canvas { margin-top:20px; }
     .ohlc-bar { text-align:center; margin-top:12px; font-weight:bold; font-size:14px; padding:8px; border-radius:8px; background:#f9f9f9; display:inline-block; }
+    body.dark .ohlc-bar { background:#2a2a2a; }
     .ohlc-bar span { margin:0 10px; }
+    .toggle-btn { position:absolute; top:20px; right:20px; padding:8px 14px; border:none; border-radius:8px; background:#042a57; color:#fff; cursor:pointer; transition:0.3s; }
+    body.dark .toggle-btn { background:#4dabf7; color:#000; }
   </style>
 </head>
 <body>
 
+  <button class="toggle-btn" onclick="toggleDarkMode()">🌙 Dark Mode</button>
   <h1>📊 TitiBank Coin Realtime Data</h1>
 
   <div class="card">
@@ -43,7 +52,7 @@
     </div>
     
     <!-- Main candlestick chart -->
-    <canvas id="priceChart" height="240"></canvas>
+    <canvas id="priceChart" height="320"></canvas>
 
     <!-- OHLC Info Bar -->
     <div id="ohlc" class="ohlc-bar">
@@ -86,7 +95,7 @@
         const changeElem = document.getElementById("change");
         const changeVal = parseFloat(token.priceChange.h24);
         changeElem.textContent = `${changeVal}%`;
-        changeElem.style.color = changeVal >= 0 ? "green" : "red";
+        changeElem.style.color = changeVal >= 0 ? "limegreen" : "red";
 
         // === Market Cap Sparkline ===
         marketCapHistory.push(Number(token.fdv));
@@ -145,10 +154,9 @@
         if (!candleChart) {
           const ctx = document.getElementById("priceChart").getContext("2d");
           candleChart = new Chart(ctx, {
-            type: 'candlestick',
             data: {
               datasets: [
-                { label: "Price (USD)", data: candleData },
+                { type: 'candlestick', label: "Price (USD)", data: candleData },
                 { type: "bar", label: "Volume", data: volumeData, yAxisID: "y2", barPercentage: 0.6 }
               ]
             },
@@ -190,7 +198,7 @@
                   ctx.moveTo(x, yAxis.top);
                   ctx.lineTo(x, yAxis.bottom);
                   ctx.lineWidth = 1;
-                  ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+                  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
                   ctx.stroke();
                   ctx.restore();
 
@@ -200,7 +208,7 @@
                     document.getElementById("high").textContent = `H: ${active.h.toFixed(6)}`;
                     document.getElementById("low").textContent = `L: ${active.l.toFixed(6)}`;
                     document.getElementById("close").textContent = `C: ${active.c.toFixed(6)}`;
-                    document.getElementById("ohlc").style.color = active.c >= active.o ? "green" : "red";
+                    document.getElementById("ohlc").style.color = active.c >= active.o ? "limegreen" : "red";
                   }
                 }
               }
@@ -215,6 +223,10 @@
       } catch (err) {
         console.error("API fetch error:", err);
       }
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark");
     }
 
     fetchData();
