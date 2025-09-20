@@ -8,24 +8,20 @@ const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json());
 
-// Get private key from functions config (recommended)
-const IMAGEKIT_PRIVATE_KEY = functions.config().imagekit?.private_key || "";
-const IMAGEKIT_PUBLIC_KEY = functions.config().imagekit?.public_key || "public_6MDkzxKFxdmlY1RsT/NsiyTLMmo=";
-// optionally you can set a folder prefix or other defaults:
-const DEFAULT_FOLDER = functions.config().imagekit?.folder || "";
+// Read ImageKit keys from functions config (secure)
+const IMAGEKIT_PRIVATE_KEY = functions.config().imagekit && functions.config().imagekit.private_key;
+const IMAGEKIT_PUBLIC_KEY = functions.config().imagekit && functions.config().imagekit.public_key;
+const DEFAULT_FOLDER = (functions.config().imagekit && functions.config().imagekit.folder) || "";
 
 if (!IMAGEKIT_PRIVATE_KEY) {
-  console.warn("Warning: IMAGEKIT_PRIVATE_KEY not set in functions config.");
+  console.warn("IMAGEKIT_PRIVATE_KEY is not set in functions config.");
 }
 
-// Endpoint: /get-imagekit-auth
+// GET /get-imagekit-auth
 app.get("/get-imagekit-auth", (req, res) => {
   try {
-    // token must be unique per request
     const token = uuidv4();
-    // expire time (unix seconds). Must be < 1 hour in future.
-    const expire = Math.floor(Date.now() / 1000) + 60 * 60; // 1 hour
-    // signature = HMAC-SHA1(token + expire) using private key
+    const expire = Math.floor(Date.now() / 1000) + 60 * 60; // 1 hour in future (seconds)
     const toSign = token + expire;
     const hmac = crypto.createHmac("sha1", IMAGEKIT_PRIVATE_KEY);
     hmac.update(toSign);
@@ -39,10 +35,10 @@ app.get("/get-imagekit-auth", (req, res) => {
       folder: DEFAULT_FOLDER
     });
   } catch (err) {
-    console.error("Auth generate error:", err);
+    console.error("Error generating ImageKit auth:", err);
     res.status(500).json({ error: "server_error" });
   }
 });
 
-// Export as a function
+// Export as Cloud Function
 exports.imagekitAuth = functions.https.onRequest(app);
