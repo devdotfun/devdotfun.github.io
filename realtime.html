@@ -3,21 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PUMP Coin Dashboard</title>
+  <title>Titi Bank Dashboard</title>
   <style>
+    :root {
+      --bg: #f5f5f5;
+      --card-bg: #fff;
+      --primary: #111827;
+      --secondary: #555;
+      --accent: #2563eb;
+    }
     body {
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
-      background: #f5f5f5;
-      color: #333;
+      background: var(--bg);
+      color: var(--secondary);
     }
     header {
-      background: #111827;
+      background: var(--primary);
       color: white;
       padding: 20px;
       text-align: center;
     }
+    header h1 { margin: 0; font-size: 28px; }
+    header p { margin: 5px 0 0; font-size: 14px; }
+
+    /* Stats Section */
     .stats {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -25,22 +36,26 @@
       margin: 20px;
     }
     .card {
-      background: white;
+      background: var(--card-bg);
       border-radius: 12px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
       padding: 20px;
       text-align: center;
+      transition: 0.3s;
     }
+    .card:hover { transform: scale(1.05); }
     .card h3 {
       margin: 0;
       font-size: 14px;
-      color: #555;
+      color: var(--secondary);
     }
     .card p {
       font-size: 18px;
       font-weight: bold;
       margin-top: 5px;
     }
+
+    /* Chart */
     .chart {
       width: 100%;
       height: 600px;
@@ -54,6 +69,58 @@
       height: 100%;
       border: none;
     }
+
+    /* Extra Section Below Chart */
+    .extra {
+      margin: 30px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+    .extra-card {
+      flex: 1;
+      min-width: 250px;
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .contract {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f0f0f0;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 14px;
+      word-break: break-all;
+    }
+    .copy-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .socials a {
+      display: inline-block;
+      margin: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      color: var(--accent);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: #111827;
+      color: #ddd;
+      margin-top: 40px;
+    }
   </style>
 </head>
 <body>
@@ -64,44 +131,64 @@
 
   <!-- Stats Section -->
   <section class="stats">
-    <div class="card">
-      <h3>Price (USD)</h3>
-      <p id="priceUsd">$--</p>
-    </div>
-    <div class="card">
-      <h3>Price (SOL)</h3>
-      <p id="priceSol">-- SOL</p>
-    </div>
-    <div class="card">
-      <h3>24h Volume</h3>
-      <p id="volumeUsd">$--</p>
-    </div>
-    <div class="card">
-      <h3>Liquidity (USD)</h3>
-      <p id="liquidityUsd">$--</p>
-    </div>
-    <div class="card">
-      <h3>Market Cap</h3>
-      <p id="marketCap">$--</p>
-    </div>
-    <div class="card">
-      <h3>24h Change</h3>
-      <p id="priceChange">--%</p>
-    </div>
+    <div class="card"><h3>Price (USD)</h3><p id="priceUsd">$--</p></div>
+    <div class="card"><h3>Price (SOL)</h3><p id="priceSol">-- SOL</p></div>
+    <div class="card"><h3>24h Volume</h3><p id="volumeUsd">$--</p></div>
+    <div class="card"><h3>Liquidity (USD)</h3><p id="liquidityUsd">$--</p></div>
+    <div class="card"><h3>Market Cap</h3><p id="marketCap">$--</p></div>
+    <div class="card"><h3>24h Change</h3><p id="priceChange">--%</p></div>
   </section>
 
   <!-- Chart Section -->
   <div class="chart">
-    <iframe
-      src="https://dexscreener.com/solana/F2167vaB18Pt9mJKMLAGUajd3sHeAgZbdvQyJyWXpump?embed=1&theme=dark&trades=0"
-      allowfullscreen>
-    </iframe>
+    <iframe id="dexChart" allowfullscreen></iframe>
   </div>
 
+  <!-- Extra Section Below Chart -->
+  <section class="extra">
+    <!-- Contract Address -->
+    <div class="extra-card">
+      <h3>📜 Contract Address</h3>
+      <div class="contract">
+        <span id="contractAddress">--</span>
+        <button class="copy-btn" onclick="copyAddress()">Copy</button>
+      </div>
+    </div>
+
+    <!-- Socials -->
+    <div class="extra-card">
+      <h3>🌐 Official Links</h3>
+      <div class="socials">
+        <a href="#" target="_blank">🌍 Website</a>
+        <a href="#" target="_blank">🐦 Twitter</a>
+        <a href="#" target="_blank">💬 Telegram</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    ⚡ Powered by Dexscreener API & Custom Dashboard | Made with ❤️
+  </footer>
+
   <script>
+    // ✅ Contract Address ek hi jagah
+    const CONTRACT_ADDRESS = "F2167vaB18Pt9mJKMLAGUajd3sHeAgZbdvQyJyWXpump";
+
+    // Chart iframe URL
+    document.getElementById("dexChart").src = 
+      `https://dexscreener.com/solana/${CONTRACT_ADDRESS}?embed=1&theme=dark&trades=0`;
+
+    // Show contract
+    document.getElementById("contractAddress").textContent = CONTRACT_ADDRESS;
+
+    function copyAddress() {
+      navigator.clipboard.writeText(CONTRACT_ADDRESS);
+      alert("Copied: " + CONTRACT_ADDRESS);
+    }
+
     async function fetchData() {
       try {
-        const res = await fetch("https://api.dexscreener.com/latest/dex/tokens/F2167vaB18Pt9mJKMLAGUajd3sHeAgZbdvQyJyWXpump");
+        const res = await fetch("https://api.dexscreener.com/latest/dex/tokens/" + CONTRACT_ADDRESS);
         const data = await res.json();
         const pair = data.pairs[0];
 
@@ -109,21 +196,18 @@
         document.getElementById("priceSol").textContent = Number(pair.priceNative).toFixed(6) + " SOL";
         document.getElementById("volumeUsd").textContent = "$" + Number(pair.volume.h24).toLocaleString();
         document.getElementById("liquidityUsd").textContent = "$" + Number(pair.liquidity.usd).toLocaleString();
-        document.getElementById("marketCap").textContent = "$" + Number(pair.fdv / 1000).toFixed(2) + "K";
-        document.getElementById("priceChange").textContent = pair.priceChange.h24 + "%";
+        document.getElementById("marketCap").textContent = "$" + (Number(pair.fdv) / 1000).toFixed(2) + "K";
 
-        if (pair.priceChange.h24 >= 0) {
-          document.getElementById("priceChange").style.color = "green";
-        } else {
-          document.getElementById("priceChange").style.color = "red";
-        }
+        const changeEl = document.getElementById("priceChange");
+        changeEl.textContent = pair.priceChange.h24 + "%";
+        changeEl.style.color = pair.priceChange.h24 >= 0 ? "green" : "red";
       } catch (err) {
         console.error("Error fetching data", err);
       }
     }
 
     fetchData();
-    setInterval(fetchData, 60); // refresh every 60s
+    setInterval(fetchData, 10000); // refresh every 10s
   </script>
 </body>
 </html>
