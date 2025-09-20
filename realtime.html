@@ -1,338 +1,97 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>RealTimeData — Coin Monitor</title>
-<link rel="preconnect" href="https://cdn.jsdelivr.net">
-<style>
-  :root{
-    --bg:#f5f7fa; --card:#fff; --muted:#6b7280; --accent:#042a57; --accent-2:#F2A900;
-    --glass: rgba(255,255,255,0.7);
-  }
-  body{font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif; margin:0; background:var(--bg); color:#111;}
-  .wrap{max-width:1100px;margin:28px auto;padding:18px;}
-  .card{background:var(--card); border-radius:12px; padding:18px; box-shadow:0 10px 30px rgba(12,20,30,0.06); margin-bottom:16px;}
-  header h1{margin:0;font-size:20px;color:var(--accent);}
-  .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;align-items:center;}
-  label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
-  input[type=text], select{padding:10px 12px;border-radius:8px;border:1px solid #e6e9ee;background:#fff; min-width:220px}
-  button{background:var(--accent);color:#fff;padding:10px 12px;border-radius:8px;border:0;cursor:pointer;font-weight:700}
-  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
-  .stat{background:linear-gradient(180deg,#fff,#fbfbff);padding:12px;border-radius:8px;border:1px solid rgba(4,42,87,0.04);text-align:center}
-  .stat .label{font-size:12px;color:var(--muted)} .stat .value{font-size:18px;font-weight:800;color:var(--accent)}
-  canvas{max-width:100%;height:340px;margin-top:12px;background:transparent}
-  .muted{color:var(--muted);font-size:13px}
-  .small{font-size:12px;color:#666}
-  .footer-note{font-size:13px;color:#444;margin-top:8px}
-  @media (max-width:900px){
-    .grid{grid-template-columns:repeat(2,1fr)}
-  }
-  @media (max-width:520px){
-    .grid{grid-template-columns:1fr}
-    input[type=text]{min-width:unset;width:100%}
-    .controls{flex-direction:column;align-items:stretch}
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TitiBank Coin Live Data</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f5f7fa; padding:20px; color:#111; }
+    h1 { color:#042a57; }
+    .card { background:#fff; padding:20px; border-radius:12px; box-shadow:0 6px 14px rgba(0,0,0,0.08); margin-bottom:20px; }
+    .stats { display:flex; flex-wrap:wrap; gap:20px; }
+    .stat { flex:1; min-width:180px; background:#fafafa; padding:12px; border-radius:8px; text-align:center; }
+    .stat h3 { margin:0; font-size:16px; color:#042a57; }
+    .stat p { font-size:18px; font-weight:bold; margin:6px 0 0; }
+    canvas { margin-top:20px; }
+  </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <header>
-        <h1>RealTimeData — Coin monitor</h1>
-        <div class="small">Enter contract address, choose chain, then click <strong>Fetch</strong>.</div>
-      </header>
 
-      <div class="controls" style="margin-top:12px;">
-        <div>
-          <label>Contract address</label>
-          <input id="contractInput" type="text" value="F2167vaB18Pt9mJKMLAGUajd3sHeAgZbdvQyJyWXpump" />
-        </div>
+  <h1>📊 TitiBank Coin Realtime Data</h1>
 
-        <div>
-          <label>Chain / platform (CoinGecko)</label>
-          <select id="chainSelect">
-            <!-- CoinGecko platform names for contract endpoint -->
-            <option value="ethereum">Ethereum</option>
-            <option value="binance-smart-chain">Binance Smart Chain</option>
-            <option value="polygon-pos">Polygon</option>
-            <option value="arbitrum-one">Arbitrum</option>
-            <option value="optimistic-ethereum">Optimism</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Optional Covalent API Key (for holders)</label>
-          <input id="covalentKey" type="text" placeholder="paste Covalent API key or leave empty" />
-        </div>
-
-        <div style="align-self:flex-end">
-          <button id="fetchBtn">Fetch</button>
-        </div>
-      </div>
-
-      <div class="footer-note">This page uses CoinGecko's public API for price/marketcap/volume. If CoinGecko does not know the token, it will show a friendly message. Holders require an indexer (optional Covalent example provided).</div>
+  <div class="card">
+    <div class="stats">
+      <div class="stat"><h3>Price (USD)</h3><p id="priceUsd">--</p></div>
+      <div class="stat"><h3>Price (SOL)</h3><p id="priceSol">--</p></div>
+      <div class="stat"><h3>24h Volume</h3><p id="volume">--</p></div>
+      <div class="stat"><h3>Liquidity (USD)</h3><p id="liquidity">--</p></div>
+      <div class="stat"><h3>24h Change</h3><p id="change">--</p></div>
     </div>
-
-    <div class="card" id="overviewCard" style="display:none">
-      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-        <div style="width:96px;height:96px;border-radius:50%;overflow:hidden;flex:0 0 96px;border:6px solid rgba(242,169,0,0.16);display:flex;align-items:center;justify-content:center;background:#fff">
-          <img id="logoImg" src="" alt="logo" style="width:100%;height:100%;object-fit:cover"/>
-        </div>
-        <div style="flex:1">
-          <h2 id="coinName" style="margin:0">—</h2>
-          <div class="muted" id="coinTag">—</div>
-          <div style="margin-top:8px" class="small">Last updated: <span id="lastUpdated">—</span></div>
-        </div>
-        <div style="width:240px">
-          <div class="small">CoinGecko id: <span id="cgId">—</span></div>
-          <div class="small">Contract: <span id="cgContract" style="word-break:break-all">—</span></div>
-        </div>
-      </div>
-
-      <div class="grid" style="margin-top:14px">
-        <div class="stat"><div class="label">Price (USD)</div><div id="priceVal" class="value">—</div></div>
-        <div class="stat"><div class="label">Market Cap</div><div id="mcapVal" class="value">—</div></div>
-        <div class="stat"><div class="label">24h Volume</div><div id="volVal" class="value">—</div></div>
-        <div class="stat"><div class="label">24h Change</div><div id="chgVal" class="value">—</div></div>
-      </div>
-
-      <canvas id="priceChart"></canvas>
-
-      <div style="display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap">
-        <div class="small">Holders: <strong id="holdersCount">—</strong> <span style="color:#999">(via Covalent if key provided)</span></div>
-        <div class="small">Token supply: <strong id="supplyVal">—</strong></div>
-        <div class="small">Circulating supply: <strong id="circVal">—</strong></div>
-      </div>
-
-      <div style="margin-top:10px" class="muted" id="extraInfo"></div>
-    </div>
-
-    <div id="errorCard" class="card" style="display:none;color:#8b1f1f;background:#fff6f6;border:1px solid #ffd6d6"></div>
-
-    <div class="card small muted">
-      <strong>Implementation notes</strong>
-      <ul>
-        <li>CoinGecko contract endpoint used:
-          <code>https://api.coingecko.com/api/v3/coins/{platform}/contract/{contract_address}</code>
-        </li>
-        <li>If CoinGecko can't find the coin, try the same contract on different platform selection (Ethereum / BSC / Polygon).</li>
-        <li>Covalent holders endpoint (optional) example:
-          <code>https://api.covalenthq.com/v1/{chain_id}/tokens/{contract_address}/token_holders/?key={API_KEY}</code>
-        </li>
-      </ul>
-    </div>
+    <canvas id="priceChart" height="120"></canvas>
   </div>
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    const apiUrl = "https://api.dexscreener.com/latest/dex/tokens/F2167vaB18Pt9mJKMLAGUajd3sHeAgZbdvQyJyWXpump";
+    let chart;
 
-<script>
-  // ---------- helpers ----------
-  const $ = (id)=> document.getElementById(id);
-  const fmt = n => {
-    if (n === null || n === undefined) return '—';
-    if (Math.abs(n) >= 1e9) return '$' + (n/1e9).toFixed(2) + 'B';
-    if (Math.abs(n) >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
-    if (Math.abs(n) >= 1e3) return '$' + (n/1e3).toFixed(2) + 'K';
-    return '$' + Number(n).toLocaleString(undefined, {maximumFractionDigits:6});
-  };
-  const fmtNum = n => n==null ? '—' : Number(n).toLocaleString();
+    async function fetchData() {
+      const res = await fetch(apiUrl);
+      const data = await res.json();
 
-  // ---------- DOM refs ----------
-  const fetchBtn = $('fetchBtn');
-  const overviewCard = $('overviewCard');
-  const errorCard = $('errorCard');
-  const logoImg = $('logoImg');
-  const coinName = $('coinName');
-  const coinTag = $('coinTag');
-  const lastUpdated = $('lastUpdated');
-  const cgId = $('cgId');
-  const cgContract = $('cgContract');
-  const priceVal = $('priceVal');
-  const mcapVal = $('mcapVal');
-  const volVal = $('volVal');
-  const chgVal = $('chgVal');
-  const holdersCount = $('holdersCount');
-  const supplyVal = $('supplyVal');
-  const circVal = $('circVal');
-  const extraInfo = $('extraInfo');
+      if (!data.pairs || data.pairs.length === 0) return;
 
-  let priceChart;
-  let priceChartObj;
+      const token = data.pairs[0];
+      document.getElementById("priceUsd").textContent = `$${parseFloat(token.priceUsd).toFixed(6)}`;
+      document.getElementById("priceSol").textContent = `${parseFloat(token.priceNative).toFixed(6)} SOL`;
+      document.getElementById("volume").textContent = `$${Number(token.volume.h24).toLocaleString()}`;
+      document.getElementById("liquidity").textContent = `$${Number(token.liquidity.usd).toLocaleString()}`;
+      document.getElementById("change").textContent = `${token.priceChange.h24}%`;
 
-  // ---------- main fetch ----------
-  fetchBtn.addEventListener('click', async () => {
-    errorCard.style.display = 'none';
-    overviewCard.style.display = 'none';
-    const contract = $('contractInput').value.trim();
-    const platform = $('chainSelect').value;
-    const covalentKey = $('covalentKey').value.trim();
-    if (!contract) return showError('Please provide a contract address.');
+      // Chart update
+      const labels = [];
+      const prices = [];
 
-    // 1) call CoinGecko contract endpoint
-    showStatus('Fetching CoinGecko data...');
-    try {
-      const cgUrl = `https://api.coingecko.com/api/v3/coins/${encodeURIComponent(platform)}/contract/${encodeURIComponent(contract)}`;
-      const resp = await fetch(cgUrl);
-      if (resp.status === 404) {
-        throw new Error('CoinGecko does not know this token on the selected platform.');
-      }
-      if (!resp.ok) throw new Error('CoinGecko returned: ' + resp.status + ' ' + resp.statusText);
-      const data = await resp.json();
-      populateOverviewFromCoinGecko(data);
-      // 2) fetch market chart if we have id
-      if (data && data.id) {
-        await fetchMarketChart(data.id);
-      }
-      // 3) optional: fetch holders via Covalent if API key provided
-      if (covalentKey) {
-        await fetchHoldersCovalent(contract, platform, covalentKey);
+      // Dexscreener API doesn't return full history, so we fake short history by refreshing
+      const now = new Date().toLocaleTimeString();
+      labels.push(now);
+      prices.push(token.priceUsd);
+
+      if (!chart) {
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Price (USD)',
+              data: prices,
+              borderColor: '#e63946',
+              backgroundColor: 'rgba(230,57,70,0.2)',
+              fill: true,
+              tension: 0.2
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: { beginAtZero: false }
+            }
+          }
+        });
       } else {
-        holdersCount.textContent = 'Provide Covalent key to fetch holders (optional)';
-      }
-      overviewCard.style.display = 'block';
-      showStatus(); // clear
-    } catch (err) {
-      showError(err.message || 'Failed to fetch data.');
-    }
-  });
-
-  function showError(msg){
-    errorCard.style.display = 'block';
-    errorCard.textContent = msg;
-  }
-  function showStatus(msg=''){
-    if (!msg) { errorCard.style.display = 'none'; return; }
-    errorCard.style.display = 'block';
-    errorCard.style.background = '#fffef6';
-    errorCard.style.color = '#6b5200';
-    errorCard.textContent = msg;
-  }
-
-  function populateOverviewFromCoinGecko(d){
-    // Basics
-    logoImg.src = (d && d.image && d.image.thumb) ? d.image.thumb : '';
-    coinName.textContent = d.name || '—';
-    coinTag.textContent = d.symbol ? d.symbol.toUpperCase() : '—';
-    lastUpdated.textContent = d.last_updated || '—';
-    cgId.textContent = d.id || '—';
-    cgContract.textContent = (d.platforms && Object.values(d.platforms).length) ? Object.values(d.platforms).find(v=>v) || '—' : (d.contract_address || '—');
-
-    // market data
-    const md = d.market_data || {};
-    const priceUsd = md.current_price ? md.current_price.usd : null;
-    const mcap = md.market_cap ? md.market_cap.usd : null;
-    const vol24 = md.total_volume ? md.total_volume.usd : null;
-    const chg24 = md.price_change_percentage_24h;
-
-    priceVal.textContent = priceUsd==null ? '—' : '$' + Number(priceUsd).toLocaleString(undefined, {maximumFractionDigits:8});
-    mcapVal.textContent = fmt(mcap);
-    volVal.textContent = fmt(vol24);
-    chgVal.textContent = chg24==null ? '—' : (chg24.toFixed(2) + '%') ;
-    supplyVal.textContent = md.total_supply ? fmtNum(md.total_supply) : '—';
-    circVal.textContent = md.circulating_supply ? fmtNum(md.circulating_supply) : '—';
-
-    extraInfo.innerHTML = '';
-    if (d.links && (d.links.homepage || d.links.repos_url)) {
-      let links = [];
-      if (d.links.homepage && d.links.homepage[0]) links.push(`<a target="_blank" rel="noopener" href="${escapeHtml(d.links.homepage[0])}">Website</a>`);
-      if (d.links.repos_url && d.links.repos_url.github && d.links.repos_url.github[0]) links.push(`<a target="_blank" rel="noopener" href="${escapeHtml(d.links.repos_url.github[0])}">GitHub</a>`);
-      extraInfo.innerHTML = links.join(' • ');
-    }
-  }
-
-  // Market chart (7 days) using CoinGecko coin id
-  async function fetchMarketChart(coinId){
-    showStatus('Fetching market chart (CoinGecko)...');
-    try {
-      const chartUrl = `https://api.coingecko.com/api/v3/coins/${encodeURIComponent(coinId)}/market_chart?vs_currency=usd&days=7&interval=hourly`;
-      const r = await fetch(chartUrl);
-      if (!r.ok) throw new Error('Chart fetch failed: ' + r.status);
-      const chart = await r.json();
-      const prices = chart.prices || [];
-      const labels = prices.map(p => new Date(p[0]).toLocaleString());
-      const values = prices.map(p => p[1]);
-      renderChart(labels, values);
-    } catch (e){
-      console.warn(e);
-      showError('Could not load market chart: ' + (e.message||e));
-    } finally {
-      showStatus();
-    }
-  }
-
-  function renderChart(labels, values){
-    const ctx = $('priceChart').getContext('2d');
-    if (priceChartObj) priceChartObj.destroy();
-    priceChartObj = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Price (USD)',
-          data: values,
-          tension: 0.18,
-          fill: true,
-          borderWidth: 2,
-          pointRadius: 0
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { display: true },
-          tooltip: { mode: 'index', intersect:false }
-        },
-        scales: {
-          x: { display: false },
-          y: { ticks: { callback: v => '$' + Number(v).toLocaleString() } }
+        chart.data.labels.push(now);
+        chart.data.datasets[0].data.push(token.priceUsd);
+        if (chart.data.labels.length > 20) {
+          chart.data.labels.shift();
+          chart.data.datasets[0].data.shift();
         }
+        chart.update();
       }
-    });
-  }
-
-  // ---------- Covalent holders (optional) ----------
-  // mapping platform -> covalent chain_id
-  const chainMap = {
-    'ethereum': 1,
-    'binance-smart-chain': 56,
-    'polygon-pos': 137,
-    'arbitrum-one': 42161,
-    'optimistic-ethereum': 10
-  };
-
-  async function fetchHoldersCovalent(contract, platform, apiKey){
-    showStatus('Fetching holders from Covalent (optional)...');
-    try {
-      const chainId = chainMap[platform];
-      if (!chainId) { holdersCount.textContent = 'Chain not supported for Covalent holders'; return; }
-      // Covalent token holders endpoint (paginated). We fetch the first page only for a quick count example.
-      // Note: Covalent may enforce rate limits.
-      const url = `https://api.covalenthq.com/v1/${chainId}/tokens/${encodeURIComponent(contract)}/token_holders/?page-size=1&key=${encodeURIComponent(apiKey)}`;
-      const r = await fetch(url);
-      if (!r.ok) throw new Error('Covalent returned ' + r.status);
-      const j = await r.json();
-      if (!j || j.error) throw new Error(j.error_message || 'Covalent error');
-      // Covalent returns pagination -> total_count
-      const total = (j && j.data && j.data.pagination && j.data.pagination.total_count) ? j.data.pagination.total_count : null;
-      if (total !== null) {
-        holdersCount.textContent = fmtNum(total);
-      } else if (j.data && j.data.items && Array.isArray(j.data.items)) {
-        holdersCount.textContent = fmtNum(j.data.items.length);
-      } else {
-        holdersCount.textContent = 'No holder info';
-      }
-    } catch (e){
-      console.warn(e);
-      holdersCount.textContent = 'Failed to fetch holders: ' + (e.message||'error');
-    } finally {
-      showStatus();
     }
-  }
 
-  // small helper to escape user links
-  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-</script>
+    fetchData();
+    setInterval(fetchData, 10000); // refresh every 10s
+  </script>
 </body>
 </html>
