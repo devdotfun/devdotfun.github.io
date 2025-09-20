@@ -152,31 +152,35 @@
 
     // send
     sendBtn.addEventListener('click', async ()=>{
-      if(!canSend) return alert("Set username first");
-      const text = msgInput.value.trim();
-      if(!text && !pendingImage) return;
+  if(!canSend) return alert("Set username first");
+  const text = msgInput.value.trim();
+  if(!text && !pendingImage) return;
 
-      const payload = {
-        uid:currentUser.uid,
-        username:currentUser.username,
-        avatar:currentUser.avatar,
-        ts:Date.now()
-      };
+  const payload = {
+    uid:currentUser.uid,
+    username:currentUser.username,
+    avatar:currentUser.avatar,
+    ts:Date.now()
+  };
 
-      if(pendingImage){
-        payload.type='image';
-        payload.text=pendingImage;
-        if(text) payload.caption=text;
-        pendingImage=null;
-        imgPreview.style.display='none';
-      } else {
-        payload.type='text';
-        payload.text=text;
-      }
+  if(pendingImage){
+    payload.type='image';
+    payload.text=pendingImage;
+    if(text) payload.caption=text;
+    pendingImage=null;
+    imgPreview.style.display='none';
+  } else {
+    payload.type='text';
+    payload.text=text;
+  }
 
-      await push(ref(db,'messages'),payload);
-      msgInput.value='';  
-    });
+  await push(ref(db,'messages'),payload);
+
+  // ✅ ab har case me clear hoga
+  msgInput.value='';
+  fileInput.value='';   // file input reset bhi
+});
+
 
     // image selection -> preview only
     imgBtn.addEventListener('click',()=> fileInput.click());
