@@ -2,34 +2,43 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>TitiBank-Live Chat</title>
+  <title>TitiBank-LiveChat</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    body{font-family:Arial,Helvetica,sans-serif;background:#f4f4f9;margin:0;padding:18px}
-    .wrap{max-width:860px;margin:18px auto;background:#fff;padding:18px;border-radius:10px;box-shadow:0 8px 26px rgba(10,20,30,0.06)}
-    h1{margin:0 0 8px 0;color:#042a57}
-    #status{color:#333;margin-bottom:8px}
-    #usernameArea{display:flex;gap:8px;align-items:center;margin-bottom:12px}
-    #usernameInput{flex:1;padding:10px;border-radius:8px;border:1px solid #ddd}
-    button{padding:9px 12px;border-radius:8px;border:0;background:#e63946;color:#fff;font-weight:700;cursor:pointer}
+    body{font-family:Arial,Helvetica,sans-serif;background:#f4f4f9;margin:0;padding:12px}
+    .wrap{max-width:860px;margin:0 auto;background:#fff;padding:12px;border-radius:10px;
+          box-shadow:0 8px 26px rgba(10,20,30,0.06);display:flex;flex-direction:column;height:100vh}
+    h1{margin:0 0 8px 0;color:#042a57;font-size:20px;text-align:center}
+    #status{color:#333;margin-bottom:8px;text-align:center;font-size:14px}
+    #usernameArea{display:flex;gap:6px;align-items:center;margin-bottom:10px}
+    #usernameInput{flex:1;padding:10px;border-radius:8px;border:1px solid #ddd;font-size:14px}
+    button{padding:9px 12px;border-radius:8px;border:0;background:#e63946;color:#fff;font-weight:600;cursor:pointer;font-size:14px}
     button.secondary{background:#042a57}
-    #messages{height:520px;overflow:auto;border-radius:8px;border:1px solid #e6e9ef;padding:12px;background:#fafbfd}
+    #messages{flex:1;overflow:auto;border-radius:8px;border:1px solid #e6e9ef;padding:12px;background:#fafbfd}
     .msg-row{display:flex;gap:10px;margin-bottom:12px;align-items:flex-start}
-    .avatar{width:42px;height:42px;border-radius:50%;flex:0 0 42px}
-    .bubble{background:#fff;padding:10px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.03);min-width:80px;max-width:74%}
-    .meta{font-weight:700;color:#042a57;margin-bottom:6px}
-    .time{font-weight:400;color:#666;font-size:12px;margin-left:8px}
-    .chat-img{max-width:320px;border-radius:8px;display:block;margin-top:8px}
-    .caption{color:#222;margin-top:6px;font-size:14px}
-    .controls{display:flex;gap:8px;margin-top:12px;align-items:center}
-    #msgInput{flex:1;padding:10px;border-radius:8px;border:1px solid #ddd}
-    #emojiPicker{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-    #emojiPicker span{cursor:pointer;padding:6px;border-radius:6px;background:#f0f0f0}
-    .preview{margin-top:10px}
-    .preview img{max-width:150px;border-radius:8px;display:block;margin-bottom:6px}
-    .reactions {margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
-    .reaction-btn{padding:4px 8px;border-radius:14px;background:#f6f6f6;cursor:pointer; font-size:13px}
+    .avatar{width:38px;height:38px;border-radius:50%;flex:0 0 38px}
+    .bubble{background:#fff;padding:10px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.03);min-width:70px;max-width:74%}
+    .meta{font-weight:700;color:#042a57;margin-bottom:4px;font-size:13px}
+    .time{font-weight:400;color:#666;font-size:11px;margin-left:8px}
+    .chat-img{max-width:220px;border-radius:8px;display:block;margin-top:6px}
+    .caption{color:#222;margin-top:4px;font-size:13px}
+    .controls{display:flex;gap:6px;align-items:center;padding:8px;background:#fff;border-top:1px solid #ddd}
+    #msgInput{flex:1;padding:10px;border-radius:8px;border:1px solid #ddd;font-size:14px}
+    #emojiPicker{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;max-height:120px;overflow:auto}
+    #emojiPicker span{cursor:pointer;padding:6px;border-radius:6px;background:#f0f0f0;font-size:18px}
+    .preview{margin-top:6px}
+    .preview img{max-width:100px;border-radius:8px;display:block;margin-bottom:4px}
+    .reactions {margin-top:6px; display:flex; gap:6px; align-items:center; flex-wrap:wrap}
+    .reaction-btn{padding:4px 8px;border-radius:14px;background:#f6f6f6;cursor:pointer; font-size:12px}
     .reaction-btn.you{background:#dfeffd}
+    /* mobile adjust */
+    @media(max-width:600px){
+      .wrap{padding:0;border-radius:0;box-shadow:none}
+      #messages{border:0}
+      .controls{padding:6px}
+      #msgInput{font-size:13px}
+      button{font-size:13px;padding:7px 10px}
+    }
   </style>
 </head>
 <body>
@@ -105,7 +114,6 @@
     });
     emojiToggle.addEventListener('click', ()=> {
       emojiPicker.style.display = emojiPicker.style.display==='flex'?'none':'flex';
-      emojiPicker.style.flexWrap='wrap';
     });
 
     function avatarFor(name){ return `https://avatars.dicebear.com/api/identicon/${encodeURIComponent(name)}.svg`; }
@@ -150,11 +158,22 @@
       canSend=true;
     }
 
-    // send function
+    // send function with loading indicator
     async function sendMessage(){
       if(!canSend) return alert("Set username first");
       const text = msgInput.value.trim();
       if(!text && !pendingImage) return;
+
+      const tempId = "temp-"+Date.now();
+      const tempPayload = {
+        uid:currentUser.uid,
+        username:currentUser.username,
+        avatar:currentUser.avatar,
+        ts:Date.now(),
+        type: pendingImage ? "image" : "text",
+        text: pendingImage ? "sending..." : "sending..."
+      };
+      renderMessage(tempId,tempPayload);
 
       const payload = {
         uid:currentUser.uid,
@@ -179,11 +198,10 @@
       // ✅ input clear
       msgInput.value='';
       fileInput.value='';
+      document.getElementById("msg-"+tempId)?.remove();
     }
 
     sendBtn.addEventListener('click', sendMessage);
-
-    // ✅ Enter key as send
     msgInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
