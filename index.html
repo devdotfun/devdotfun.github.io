@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Titibank - Safest0Banking</title>
+  <title>Titibank - Safest Meme Banking</title>
   <style>
     :root{
       --bank-blue:#042a57;
-      --btc-yellow:#F2A900; /* bitcoin-style yellow */
+      --btc-yellow:#F2A900;
       --accent:#e63946;
       --muted:#eef3f7;
       --card-bg:#fff;
@@ -21,8 +21,6 @@
       color:#222;
       line-height:1.5;
     }
-
-    /* Header */
     header{
       background: var(--btc-yellow);
       color: var(--bank-blue);
@@ -33,182 +31,59 @@
       gap:16px;
       border-bottom: 1px solid rgba(0,0,0,0.06);
     }
-    header .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-    }
-    header img.logo{
-      height:44px;
-      width:auto;
-      display:block;
-      border-radius:4px;
-      background: white;
-      padding:4px;
-    }
+    header .brand{ display:flex; align-items:center; gap:12px; }
+    header img.logo{ height:44px; border-radius:4px; background: white; padding:4px; }
     nav a{
-      color:var(--bank-blue);
-      text-decoration:none;
-      margin-left:16px;
-      font-weight:600;
+      color:var(--bank-blue); text-decoration:none; margin-left:16px; font-weight:600;
     }
     nav a:hover{ text-decoration:underline; }
-
-    /* Hero */
     .hero{
       background: url('0090.png') no-repeat center/cover;
-      padding:110px 20px;
-      text-align:center;
-      color: white;
-      position:relative;
+      padding:110px 20px; text-align:center; color: white; position:relative;
     }
     .hero::after{
-      /* slight dark overlay to keep text readable */
-      content:"";
-      position:absolute;
-      inset:0;
+      content:""; position:absolute; inset:0;
       background:linear-gradient(to bottom, rgba(0,0,0,0.18), rgba(0,0,0,0.22));
-      pointer-events:none;
     }
-    .hero .hero-inner{
-      position:relative;
-      z-index:1;
-      max-width:980px;
-      margin:auto;
-    }
-    .hero h1{
-      margin:0;
-      font-size:42px;
-      font-weight:700;
-    }
+    .hero .hero-inner{ position:relative; z-index:1; max-width:980px; margin:auto; }
+    .hero h1{ margin:0; font-size:42px; font-weight:700; }
     .hero p{ margin-top:10px; font-size:18px; opacity:0.95; }
     .btn-primary{
-      display:inline-block;
-      margin-top:18px;
-      padding:12px 22px;
-      background:var(--accent);
-      color:white;
-      border-radius:6px;
-      text-decoration:none;
-      font-weight:700;
+      display:inline-block; margin-top:18px; padding:12px 22px;
+      background:var(--accent); color:white; border-radius:6px; text-decoration:none; font-weight:700;
       box-shadow: 0 6px 14px rgba(230,57,70,0.18);
     }
-    .btn-primary:hover{ filter:brightness(.95) }
-
-    /* Page content */
     .container{ max-width:1180px; margin:34px auto; padding:0 20px; }
-
-    /* Feature block with titcoin image + text + copy button */
     .feature-row{
-      display:flex;
-      gap:28px;
-      align-items:center;
-      background: white;
-      padding:22px;
-      border-radius:10px;
-      box-shadow: var(--shadow);
+      display:flex; gap:28px; align-items:center;
+      background: white; padding:22px; border-radius:10px; box-shadow: var(--shadow);
     }
-    .feature-row img{ width:240px; height:auto; border-radius:8px; object-fit:contain; background:#fff; padding:18px; }
+    .feature-row img{ width:240px; border-radius:8px; object-fit:contain; background:#fff; padding:18px; }
     .feature-content{ flex:1; }
-    .feature-content h3{
-      margin:0 0 8px 0;
-      color:var(--bank-blue);
-      font-size:20px;
-    }
-    .feature-content p{ margin:0 0 12px 0; color:#222; }
-
-    /* Copyable highlight area */
-    .copy-area{
-      display:flex;
-      gap:12px;
-      align-items:center;
-      margin-top:6px;
-    }
+    .feature-content h3{ margin:0 0 8px 0; color:var(--bank-blue); font-size:20px; }
+    .copy-area{ display:flex; gap:12px; align-items:center; margin-top:6px; }
     .copy-text{
-      background: linear-gradient(180deg, #fff 0%, #fbfbfb 100%);
-      border: 1px solid rgba(4,42,87,0.06);
-      padding:10px 14px;
-      border-radius:8px;
-      box-shadow: 0 6px 12px rgba(12,20,30,0.04);
-      font-weight:600;
-      color:var(--bank-blue);
-      min-width:220px;
+      background:#fbfbfb; border: 1px solid rgba(4,42,87,0.06);
+      padding:10px 14px; border-radius:8px; font-weight:600; color:var(--bank-blue);
     }
-    .copy-btn{
-      padding:10px 12px;
-      border-radius:8px;
-      background:var(--btc-yellow);
-      color:var(--bank-blue);
-      border:none;
-      font-weight:700;
-      cursor:pointer;
-      transition:transform .08s ease;
-    }
-    .copy-btn:active{ transform:scale(.98) }
-    .copy-success{
-      margin-left:10px;
-      color:green;
-      font-size:14px;
-      display:none;
-    }
-
-    /* Sections alternate */
-    .section{
-      display:flex;
-      gap:28px;
-      align-items:center;
-      padding:48px 0;
-      flex-wrap:wrap;
-    }
+    .copy-btn{ padding:10px 12px; border-radius:8px; background:var(--btc-yellow); font-weight:700; cursor:pointer; }
+    .copy-success{ margin-left:10px; color:green; font-size:14px; display:none; }
+    .section{ display:flex; gap:28px; align-items:center; padding:48px 0; flex-wrap:wrap; }
     .section:nth-child(even){ background:var(--muted); padding-left:28px; padding-right:28px; }
     .section .s-img{ flex:0 0 48%; max-width:48%; }
     .section .s-img img{ width:100%; border-radius:10px; box-shadow: var(--shadow); }
     .section .s-text{ flex:1; min-width:260px; }
     .section h2{ color:var(--bank-blue); margin-top:0; }
-
-    /* Footer with twitter links left + right */
-    footer{
-      background:#111;
-      color:#fff;
-      padding:18px 22px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-    }
-    .footer-left, .footer-right{ display:flex; align-items:center; gap:12px; }
-    .twitter-btn{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      text-decoration:none;
-      color:#fff;
-      background:rgba(255,255,255,0.05);
-      padding:8px 12px;
-      border-radius:8px;
-      font-weight:600;
-      border:1px solid rgba(255,255,255,0.04);
-    }
-    .twitter-btn svg{ width:18px; height:18px; display:block; }
-
-    @media (max-width:880px){
-      .feature-row{ flex-direction:column; text-align:center; }
-      .feature-row img{ width:60%; }
-      .section .s-img, .section .s-text{ max-width:100%; flex-basis:100%; }
-      header{ padding:10px 14px; }
-      .hero{ padding:80px 12px; }
-    }
+    footer{ background:#111; color:#fff; padding:18px 22px; display:flex; justify-content:space-between; }
   </style>
 </head>
 <body>
 
-  <!-- Header -->
   <header>
     <div class="brand">
       <img src="0.png" alt="Titibank logo" class="logo">
       <div style="font-weight:800; color:var(--bank-blue);">Titibank</div>
     </div>
-
     <nav>
       <a href="#">Home</a>
       <a href="#">Accounts</a>
@@ -217,100 +92,73 @@
     </nav>
   </header>
 
-  <!-- Hero -->
-  <section class="hero" aria-label="Hero banner">
+  <section class="hero">
     <div class="hero-inner">
       <h1>Welcome to Titibank</h1>
-      <p>Your trusted partner in modern banking</p>
-      <!-- Open account button opens pump.fun link -->
-      <a class="btn-primary" href="https://pump.fun/coin/F2167vaB18Pt9mJKMLAGUajd3sHeAgZbdvQyJyWXpump" target="_blank" rel="noopener">Open an Account</a>
+      <p>Your trusted partner in modern meme banking</p>
+      <a class="btn-primary" href="https://pump.fun/coin/F2167vaB18Pt9mJKMLAGUajd3sHeAgZbdvQyJyWXpump" target="_blank">Buy</a>
     </div>
   </section>
 
-  <!-- Content -->
-  <main class="container" role="main">
-
-    <!-- Titcoin feature row: image on left, text on right with copy button -->
+  <main class="container">
     <div style="margin-bottom:28px;">
       <div class="feature-row">
         <img src="0.png" alt="Titcoin">
         <div class="feature-content">
-          <h3>titibank — Safest Banking</h3>
-          <p><strong>Titi Bank</strong><br>
-            Manage your money anytime, anywhere with Titibank’s secure online banking on pump.fun</p>
-
-          <!-- copyable text + button -->
-          <div class="copy-area" aria-live="polite">
+          <h3>Titibank — Safest Meme Banking</h3>
+          <p><strong>Tit Coin</strong><br>
+            The original meme coin that combines stability with fun. Tit Coin is built for secure trading,
+            strong community support, and a culture full of humor and hype.</p>
+          <div class="copy-area">
             <div id="copyText" class="copy-text">F2167vaB18Pt9mJKMLAGUajd3sHeAgZbdvQyJyWXpump</div>
-            <button id="copyBtn" class="copy-btn" title="Copy text">Copy</button>
+            <button id="copyBtn" class="copy-btn">Copy</button>
             <div id="copySuccess" class="copy-success">Copied!</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Other sections (use your images 2.png..5.png) -->
     <section class="section">
-      <div class="s-img"><img src="2.png" alt="Savings & Accounts"></div>
+      <div class="s-img"><img src="milk.png" alt="Milkers Coin"></div>
       <div class="s-text">
-        <h2>Tit Coin</h2>
-        <p>Choose from a wide variety of savings and checking accounts, designed to support your lifestyle and future goals.</p>
+        <h2>Mariah Milkers Coin</h2>
+        <p>A symbol of liquidity and growth. Milkers Coin delivers strong community vibes,
+        consistent gains, and unstoppable energy. Just like a glass of milk strengthens the body,
+        this coin strengthens your portfolio.</p>
       </div>
     </section>
 
     <section class="section">
-      <div class="s-img"><img src="milk.png" alt="Loans & Credit"></div>
+      <div class="s-img"><img src="4.png" alt="DoubleD Coin"></div>
       <div class="s-text">
-        <h2>Mariah Milkers</h2>
-        <p>Enjoy fast approvals, flexible repayment plans, and competitive interest rates tailored to your needs.</p>
+        <h2>DoubleD Coin</h2>
+        <p>Double the hype, double the rewards! DoubleD Coin is designed for traders who want
+        bigger moves, stronger memes, and twice the excitement in every market pump.</p>
       </div>
     </section>
 
     <section class="section">
-      <div class="s-img"><img src="4.png" alt="Business Solutions"></div>
+      <div class="s-img"><img src="5.png" alt="Booba Token"></div>
       <div class="s-text">
-        <h2>📈 Business Solutions</h2>
-        <p>From small businesses to large enterprises, Titibank provides innovative financial solutions to help you grow.</p>
+        <h2>Booba Token</h2>
+        <p>The ultimate meme treasure. Booba Token brings endless laughter, solid community support,
+        and massive trading potential. Wherever memes go, Booba Token follows.</p>
       </div>
     </section>
-
-    <section class="section">
-      <div class="s-img"><img src="5.png" alt="Global Reach"></div>
-      <div class="s-text">
-        <h2>🌍 Global Reach</h2>
-        <p>Bank with confidence wherever you are. Titibank connects you to global financial opportunities.</p>
-      </div>
-    </section>
-
   </main>
 
-  <!-- Footer with two twitter links (left & right) -->
   <footer>
-    <div class="footer-left">
-      <span style="opacity:0.9;">&copy; 2025 Titibank. All Rights Reserved.</span>
-    </div>
-
-    <div class="footer-right">
-      <!-- Replace hrefs with your real twitter links -->
-      <a class="twitter-btn" href="https://twitter.com/TheTitiBank" target="_blank" rel="noopener">
-        <!-- twitter icon -->
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.633 7.997c.013.176.013.353.013.529 0 5.389-4.101 11.611-11.611 11.611A11.56 11.56 0 0 1 1 18.02a8.112 8.112 0 0 0 .95.05c1.83 0 3.515-.624 4.853-1.675a4.1 4.1 0 0 1-3.826-2.842c.252.038.504.063.77.063.37 0 .74-.05 1.083-.15A4.099 4.099 0 0 1 4.1 9.597v-.05c.565.315 1.214.504 1.904.526a4.1 4.1 0 0 1 1.128-2.453 4.11 4.11 0 0 1 3.07 1.132 8.236 8.236 0 0 0 5.985-3.03 4.093 4.093 0 0 1-1.803 2.257 8.21 8.21 0 0 0 2.356-.62 8.448 8.448 0 0 1-2.06 2.13z"/></svg>
-        Profile
-      </a>
-
-      <a class="twitter-btn" href="https://twitter.com/i/communities/1898469706874728857" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.633 7.997c.013.176.013.353.013.529 0 5.389-4.101 11.611-11.611 11.611A11.56 11.56 0 0 1 1 18.02a8.112 8.112 0 0 0 .95.05c1.83 0 3.515-.624 4.853-1.675a4.1 4.1 0 0 1-3.826-2.842c.252.038.504.063.77.063.37 0 .74-.05 1.083-.15A4.099 4.099 0 0 1 4.1 9.597v-.05c.565.315 1.214.504 1.904.526a4.1 4.1 0 0 1 1.128-2.453 4.11 4.11 0 0 1 3.07 1.132 8.236 8.236 0 0 0 5.985-3.03 4.093 4.093 0 0 1-1.803 2.257 8.21 8.21 0 0 0 2.356-.62 8.448 8.448 0 0 1-2.06 2.13z"/></svg>
-        Community
-      </a>
+    <div>&copy; 2025 Titibank. All Rights Reserved.</div>
+    <div>
+      <a href="https://twitter.com/TheTitiBank" target="_blank" style="color:white;">Twitter Profile</a> |
+      <a href="https://twitter.com/i/communities/1898469706874728857" target="_blank" style="color:white;">Community</a>
     </div>
   </footer>
 
   <script>
-    // copy-to-clipboard for the highlighted text
     const copyBtn = document.getElementById('copyBtn');
     const copyTextEl = document.getElementById('copyText');
     const copySuccess = document.getElementById('copySuccess');
-
     copyBtn.addEventListener('click', async () => {
       const text = copyTextEl.textContent.trim();
       try {
@@ -318,13 +166,7 @@
         copySuccess.style.display = 'inline';
         setTimeout(()=> copySuccess.style.display = 'none', 1600);
       } catch (e) {
-        // fallback
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        try { document.execCommand('copy'); copySuccess.style.display = 'inline'; setTimeout(()=> copySuccess.style.display = 'none', 1600); } catch(err){ alert('Copy failed — select and copy manually.'); }
-        ta.remove();
+        alert('Copy failed — select and copy manually.');
       }
     });
   </script>
