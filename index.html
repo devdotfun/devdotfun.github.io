@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TitiBank - Meme Bank</title>
+  <title>TitiBank - Meme Banking</title>
   <style>
     :root{
       --bank-blue:#042a57;
@@ -77,6 +77,7 @@
       font-weight:600;
       cursor:pointer;
       margin-left:16px;
+      transition:background 0.3s,color 0.3s;
     }
     body.dark .dark-toggle{
       background:#fff;
@@ -133,10 +134,102 @@
       box-shadow: var(--shadow);
       transition: background 0.3s;
     }
+    .feature-row img{
+      width:180px;
+      height:180px;
+      border-radius:50%;
+      object-fit:cover;
+      padding:10px;
+      background:#fff;
+      box-shadow: 0 0 12px rgba(242,169,0,0.8),
+                  0 0 22px rgba(242,169,0,0.6),
+                  0 0 32px rgba(242,169,0,0.4);
+      animation: shine 3s infinite alternate;
+    }
+    @keyframes shine {
+      from { box-shadow: 0 0 10px rgba(242,169,0,0.6), 0 0 20px rgba(242,169,0,0.3); }
+      to   { box-shadow: 0 0 20px rgba(242,169,0,1), 0 0 40px rgba(242,169,0,0.8); }
+    }
+    .feature-content{ flex:1; }
+    .feature-content h3{
+      margin:0 0 8px 0;
+      color:var(--bank-blue);
+      font-size:20px;
+    }
+    .feature-content p{ margin:0 0 12px 0; color:inherit; }
+
+    /* Copyable highlight area */
+    .copy-area{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      margin-top:6px;
+      flex-wrap:wrap;
+    }
+    .copy-text{
+      background: linear-gradient(180deg, #fff 0%, #fbfbfb 100%);
+      border: 1px solid rgba(4,42,87,0.06);
+      padding:10px 14px;
+      border-radius:8px;
+      box-shadow: 0 6px 12px rgba(12,20,30,0.04);
+      font-weight:600;
+      color:var(--bank-blue);
+      min-width:220px;
+    }
+    body.dark .copy-text{
+      background:#222;
+      color:#fff;
+      border:1px solid #333;
+    }
+    .copy-btn{
+      padding:10px 12px;
+      border-radius:8px;
+      background:var(--btc-yellow);
+      color:var(--bank-blue);
+      border:none;
+      font-weight:700;
+      cursor:pointer;
+      transition:transform .08s ease;
+    }
+    .copy-btn:active{ transform:scale(.98) }
+    .copy-success{
+      margin-left:10px;
+      color:limegreen;
+      font-size:14px;
+      display:none;
+    }
+
+    /* Twitter buttons */
+    .twitter-btn{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      text-decoration:none;
+      color:#fff;
+      background:var(--bank-blue);
+      padding:8px 12px;
+      border-radius:8px;
+      font-weight:600;
+      margin-top:10px;
+    }
+    .twitter-btn svg{ width:18px; height:18px; display:block; }
 
     /* Sections */
+    .section{
+      display:flex;
+      gap:28px;
+      align-items:center;
+      padding:48px 0;
+      flex-wrap:wrap;
+      transition: background 0.3s;
+    }
+    .section:nth-child(even){ background:var(--muted); padding-left:28px; padding-right:28px; }
+    .section .s-img{ flex:0 0 48%; max-width:48%; }
     .section .s-img img{ width:100%; border-radius:10px; box-shadow: var(--shadow); }
+    .section .s-text{ flex:1; min-width:260px; }
+    .section h2{ color:var(--bank-blue); margin-top:0; }
 
+    /* Footer */
     footer{
       background:#111;
       color:#fff;
@@ -146,7 +239,15 @@
       justify-content:space-between;
       gap:12px;
     }
+    body.dark footer{ background:#000; }
 
+    @media (max-width:880px){
+      .feature-row{ flex-direction:column; text-align:center; }
+      .feature-row img{ width:160px; height:160px; }
+      .section .s-img, .section .s-text{ max-width:100%; flex-basis:100%; }
+      header{ padding:10px 14px; }
+      .hero{ padding:80px 12px; }
+    }
   </style>
 </head>
 <body>
@@ -176,14 +277,94 @@
     </div>
   </section>
 
+  <!-- Content -->
+  <main class="container" role="main">
+
+    <!-- Feature Row -->
+    <div style="margin-bottom:28px;">
+      <div class="feature-row">
+        <img src="zero.png" alt="Titcoin">
+        <div class="feature-content">
+          <h3>Titibank — Safest Meme Banking</h3>
+          <p><strong>TitiBank</strong><br>
+            The original meme coin that mixes stability with playful community spirit. Built for secure trading,
+            strong community support, and a culture full of humor and momentum.</p>
+
+          <div class="copy-area" aria-live="polite">
+            <div id="copyText" class="copy-text">F2167vaB18Pt9mJKMLAGUajd3sHeAgZbdvQyJyWXpump</div>
+            <button id="copyBtn" class="copy-btn" title="Copy text">Copy</button>
+            <div id="copySuccess" class="copy-success">Copied!</div>
+          </div>
+
+          <!-- Twitter & Community buttons -->
+          <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a class="twitter-btn" href="https://twitter.com/TheTitiBank" target="_blank" rel="noopener">Twitter</a>
+            <a class="twitter-btn" href="https://twitter.com/i/communities/1898469706874728857" target="_blank" rel="noopener">Community</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sections -->
+    <section class="section">
+      <div class="s-img"><img src="2.png" alt="Savings & Accounts"></div>
+      <div class="s-text">
+        <h2>Tit Coin</h2>
+        <p>The original meme coin that mixes stability with playful community spirit. Built for secure trading,
+            strong community support, and a culture full of humor and momentum.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="s-img"><img src="milk.png" alt="Milkers Coin"></div>
+      <div class="s-text">
+        <h2>Mariah Milkers</h2>
+        <p>A symbol of liquidity and community growth. Milkers Coin delivers strong community vibes and steady momentum — perfect for long-term holders who love the meme scene.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="s-img"><img src="booba.png" alt="DoubleD Coin"></div>
+      <div class="s-text">
+        <h2>Booba</h2>
+        <p>Double the hype, double the rewards. Designed for traders who chase bigger moves and stronger meme momentum.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="s-img"><img src="boob.png" alt="Booba Token"></div>
+      <div class="s-text">
+        <h2>8008</h2>
+        <p>The ultimate meme treasure — built around community, creativity, and viral potential. Great for collectors and meme traders alike.</p>
+      </div>
+    </section>
+
+  </main>
+
   <!-- Footer -->
   <footer>
     <div class="footer-left">
       <span style="opacity:0.9;">&copy; 2025 Titibank. All Rights Reserved.</span>
     </div>
+
+    <div class="footer-right">
+      <a class="twitter-btn" href="https://twitter.com/TheTitiBank" target="_blank" rel="noopener">Profile</a>
+      <a class="twitter-btn" href="https://twitter.com/i/communities/1898469706874728857" target="_blank" rel="noopener">Community</a>
+    </div>
   </footer>
 
   <script>
+    // Copy functionality
+    const copyBtn = document.getElementById('copyBtn');
+    const copyText = document.getElementById('copyText');
+    const copySuccess = document.getElementById('copySuccess');
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(copyText.textContent).then(() => {
+        copySuccess.style.display='inline';
+        setTimeout(()=>copySuccess.style.display='none', 2000);
+      });
+    });
+
     // Dark mode toggle
     const darkToggle = document.getElementById('darkToggle');
     darkToggle.addEventListener('click', ()=>{
