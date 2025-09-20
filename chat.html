@@ -60,7 +60,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded, onChildChanged, set, child, get, update } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+    import { getDatabase, ref, push, onChildAdded, onChildChanged, set, child, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
     const firebaseConfig = {
@@ -95,8 +95,8 @@
     let canSend = false;
     let pendingImage = null;
 
-    // emoji list
-    const emojis = ["😀","😁","😂","🤣","😊","😍","😎","😢","😡","👍","🙏","🔥","❤️","💔","🎉","👏","👌","😴","🤔","🙄","😱","🥶","🤯","🥳","🤗","🤩","😇","😈","💯","⚡","🌹"];
+    // ✅ big emoji list
+    const emojis = ["😀","😁","😂","🤣","😊","😍","😎","😢","😡","👍","🙏","🔥","❤️","💔","🎉","👏","👌","😴","🤔","🙄","😱","🥶","🤯","🥳","🤗","🤩","😇","😈","💯","⚡","🌹","🍕","🍔","🍟","🥤","🎂","🍎","🍓","🍇","🥭","🍉","⚽","🏀","🏆","🎧","🎮","🚗","✈️","🏝️"];
     emojis.forEach(e=>{
       const s = document.createElement('span');
       s.textContent = e;
@@ -150,39 +150,38 @@
       canSend=true;
     }
 
-    // send
+    // ✅ send
     sendBtn.addEventListener('click', async ()=>{
-  if(!canSend) return alert("Set username first");
-  const text = msgInput.value.trim();
-  if(!text && !pendingImage) return;
+      if(!canSend) return alert("Set username first");
+      const text = msgInput.value.trim();
+      if(!text && !pendingImage) return;
 
-  const payload = {
-    uid:currentUser.uid,
-    username:currentUser.username,
-    avatar:currentUser.avatar,
-    ts:Date.now()
-  };
+      const payload = {
+        uid:currentUser.uid,
+        username:currentUser.username,
+        avatar:currentUser.avatar,
+        ts:Date.now()
+      };
 
-  if(pendingImage){
-    payload.type='image';
-    payload.text=pendingImage;
-    if(text) payload.caption=text;
-    pendingImage=null;
-    imgPreview.style.display='none';
-  } else {
-    payload.type='text';
-    payload.text=text;
-  }
+      if(pendingImage){
+        payload.type='image';
+        payload.text=pendingImage;
+        if(text) payload.caption=text;
+        pendingImage=null;
+        imgPreview.style.display='none';
+      } else {
+        payload.type='text';
+        payload.text=text;
+      }
 
-  await push(ref(db,'messages'),payload);
+      await push(ref(db,'messages'),payload);
 
-  // ✅ ab har case me clear hoga
-  msgInput.value='';
-  fileInput.value='';   // file input reset bhi
-});
+      // ✅ ab har case me clear hoga
+      msgInput.value='';
+      fileInput.value='';
+    });
 
-
-    // image selection -> preview only
+    // image select -> preview
     imgBtn.addEventListener('click',()=> fileInput.click());
     fileInput.addEventListener('change', e=>{
       const file=e.target.files[0];
@@ -207,7 +206,7 @@
       }
     }
 
-    // render message
+    // render msg
     function renderMessage(id,msg){
       const row=document.createElement('div');
       row.className='msg-row';
