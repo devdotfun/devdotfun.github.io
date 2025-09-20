@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TitiBank — Live Chat</title>
+  <style>
+    body{ font-family: Inter, system-ui, Arial; background:#f5f7fa; color:#222; margin:0; padding:20px; }
+    .wrap{ max-width:900px; margin:18px auto; background:#fff; border-radius:10px; padding:18px; box-shadow:0 6px 18px rgba(10,20,30,0.06); }
+    h1{ margin-top:0; }
+    #messages{ height:420px; overflow-y:auto; border:1px solid #e6e9ef; padding:12px; border-radius:8px; background:#fafbfd; }
+    .msg{ margin-bottom:12px; padding:8px 10px; border-radius:8px; background:#fff; box-shadow:0 2px 6px rgba(10,20,30,0.03); }
+    .meta{ font-size:13px; color:#334; font-weight:700; margin-bottom:6px; }
+    .time{ font-weight:400; font-size:12px; color:#777; margin-left:8px; }
+    #controls{ display:flex; gap:8px; margin-top:12px; align-items:center; }
+    #msgInput{ flex:1; padding:10px; border-radius:8px; border:1px solid #ddd; }
+    button{ padding:9px 12px; border-radius:8px; border:0; background:#e63946; color:#fff; font-weight:700; cursor:pointer; }
+    button:disabled{ opacity:0.5; cursor:not-allowed; }
+    #usernameArea{ margin-top:12px; display:flex; gap:8px; align-items:center; }
+    input[type=file]{ display:none; }
+    .small{ font-size:13px; color:#555; }
+    .right{ float:right }
+    .img-preview{ max-width:320px; display:block; margin-top:8px; border-radius:8px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>💬 TitiBank Live Chat</h1>
+    <div id="status" class="small">Connecting...</div>
+
+    <div id="usernameArea">
+      <input id="usernameInput" placeholder="Choose a username (required to send messages)" />
+      <button id="saveUsernameBtn">Save username</button>
+      <button id="readOnlyBtn">Continue read-only</button>
+      <button id="changeUsernameBtn" style="display:none;">Change username</button>
+    </div>
+
+    <div id="messages" aria-live="polite"></div>
+
+    <div id="controls" style="display:none;">
+      <input id="msgInput" placeholder="Type your message" />
+      <label for="imgPicker" style="background:#042a57; color:#fff; padding:8px 10px; border-radius:8px; cursor:pointer;">📷</label>
+      <input type="file" id="imgPicker" accept="image/*"/>
+      <button id="sendBtn">Send</button>
+    </div>
+  </div>
+
+  <script type="module">
+    // ----- IMPORT FIREBASE MODULES -----
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded, set, get, child, query, orderByChild } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { getStorage, ref as sref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js";
+
+    // ----- PASTE YOUR FIREBASE CONFIG HERE -----
+    const firebaseConfig = {
+      apiKey: "REPLACE_WITH_YOUR_apiKey",
+      authDomain: "REPLACE_WITH_YOUR_authDomain",
+      databaseURL: "REPLACE_WITH_YOUR_databaseURL",
+      projectId: "REPLACE_WITH_YOUR_projectId",
+      storageBucket: "REPLACE_WITH_YOUR_storageBucket",
+      messagingSenderId: "REPLACE_WITH_YOUR_messagingSenderId",
+      appId: "REPLACE_WITH_YOUR_appId"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+    const storage = getStorage(app);
+
+    // DOM
+    const statusEl = document.getElementById('status');
+    const messagesEl = document.getElementById('messages');
+    const msgInput = document.getElementById('msgInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const controls = document.getElementById('controls');
+    const usernameArea = document.getElementById('usernameArea');
+    const usernameInput = document.getElementById('usernameInput');
+    const saveUsernameBtn = document.getElementById('saveUsernameBtn');
+    const readOnlyBtn = document.getElementById('readOnlyBtn');
+    const changeUsernameBtn = document.getElementById('changeUsernameBtn');
+    const imgPicker = document.getElementById('imgPicker');
+
+    let currentUser = null;    // { uid, username } after auth and optionally set username
+    let canSend = false;       // only true when username exists
+    let readOnly = false;
+
+    // sign in anonymously
+    signInAnonymously(auth).catch(err=>{
+      console.error("Auth error:", err);
+      statusEl.textContent = "Authentication failed: " + err.message;
+    });
+
+    onAuthStateChanged(auth, async (user)=>{
+      if(!user) return;
+      statusEl.textContent = "Connected (uid: "+ user.uid +")";
+      currentUser = { uid: user.uid, username: null };
+
+      // check if username exists in DB
+      const userSnap = await get(child(ref(db), 'users/' + user.uid));
+      if(userSnap.exists()){
+        const data = userSnap.val();
+        currentUser.username = data.username;
+        enableChatWithUsername(data.username);
+      } else {
+        // show username input (allow read-only)
+        usernameArea.style.display = 'flex';
+        controls.style.display = 'none';
+        canSend = false;
+      }
+
+      // start listening to messages
+      onChildAdded(ref(db, 'messages'), (snap)=>{
+        appendMessage(snap.val());
+      });
+    });
+
+    function enableChatWithUsername(name){
+      currentUser.username = name;
+      usernameArea.style.display = 'none';
+      controls.style.display = 'flex';
+      canSend = true;
+      readOnly = false;
+      changeUsernameBtn.style.display = 'inline-block';
+      usernameInput.value = '';
+    }
+
+    // Save username
+    saveUsernameBtn.addEventListener('click', async ()=>{
+      const name = usernameInput.value.trim();
+      if(!name){ alert("Please enter a username (min 2 chars)"); return; }
+      // write to users/{uid}
+      await set(ref(db, 'users/' + currentUser.uid), { username: name });
+      enableChatWithUsername(name);
+    });
+
+    // Read-only
+    readOnlyBtn.addEventListener('click', ()=>{
+      usernameArea.style.display = 'none';
+      controls.style.display = 'none';
+      canSend = false;
+      readOnly = true;
+      changeUsernameBtn.style.display = 'inline-block';
+    });
+
+    // Change username (allow user to set/change)
+    changeUsernameBtn.addEventListener('click', ()=>{
+      usernameArea.style.display = 'flex';
+      controls.style.display = 'none';
+    });
+
+    // Send message
+    sendBtn.addEventListener('click', sendMessage);
+    msgInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') sendMessage(); });
+
+    async function sendMessage(){
+      const text = msgInput.value.trim();
+      if(!canSend){ alert("You must set a username to send messages."); return; }
+      if(!text) return;
+      const payload = {
+        uid: currentUser.uid,
+        username: currentUser.username,
+        type: 'text',
+        text,
+        ts: Date.now()
+      };
+      await push(ref(db, 'messages'), payload);
+      msgInput.value = '';
+    }
+
+    // Image upload
+    imgPicker.addEventListener('change', async (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      if(!canSend){ alert("You must set a username to send images."); return; }
+
+      const path = `chat_images/${currentUser.uid}_${Date.now()}_${file.name}`;
+      const storageReference = sref(storage, path);
+      const snapshot = await uploadBytes(storageReference, file);
+      const url = await getDownloadURL(snapshot.ref);
+
+      const payload = {
+        uid: currentUser.uid,
+        username: currentUser.username,
+        type: 'image',
+        text: url,
+        ts: Date.now()
+      };
+      await push(ref(db, 'messages'), payload);
+      imgPicker.value = '';
+    });
+
+    // Append message to UI
+    function appendMessage(msg){
+      const div = document.createElement('div');
+      div.className = 'msg';
+      const t = new Date(msg.ts || Date.now()).toLocaleString();
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.innerHTML = `${escapeHtml(msg.username || 'Unknown')} <span class="time">${t}</span>`;
+      div.appendChild(meta);
+
+      if(msg.type === 'image'){
+        const img = document.createElement('img');
+        img.src = msg.text;
+        img.className = 'img-preview';
+        img.alt = 'image';
+        div.appendChild(img);
+      } else {
+        const p = document.createElement('div');
+        p.textContent = msg.text;
+        div.appendChild(p);
+      }
+
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    // helper
+    function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  </script>
+</body>
+</html>
