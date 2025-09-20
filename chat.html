@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>TitiBank - Live Chat </title>
+  <title>TitiBank Chat — image preview + caption</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     body{font-family:Arial,Helvetica,sans-serif;background:#f4f4f9;margin:0;padding:18px}
@@ -26,11 +26,12 @@
     #msgInput{flex:1;padding:10px;border-radius:8px;border:1px solid #ddd}
     #emojiPicker{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
     #emojiPicker span{cursor:pointer;padding:6px;border-radius:6px;background:#f0f0f0}
+    .preview{margin-top:10px}
+    .preview img{max-width:150px;border-radius:8px;display:block;margin-bottom:6px}
     .reactions {margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
     .reaction-btn{padding:4px 8px;border-radius:14px;background:#f6f6f6;cursor:pointer; font-size:13px}
     .reaction-btn.you{background:#dfeffd}
     .small-muted{font-size:12px;color:#666;margin-left:6px}
-    .caption-input{width:100%;padding:8px;border-radius:8px;border:1px solid #eee;margin-top:8px}
   </style>
 </head>
 <body>
@@ -47,24 +48,23 @@
     <div id="messages" aria-live="polite"></div>
 
     <div id="compose" style="display:none">
+      <div class="preview" id="imgPreview" style="display:none"></div>
       <div class="controls">
-        <input id="msgInput" placeholder="Write a message (or send caption with image)"/>
+        <input id="msgInput" placeholder="Write a message"/>
         <button id="emojiToggle">😀</button>
         <input id="fileInput" type="file" accept="image/*" style="display:none" />
         <button id="imgBtn">📷</button>
         <button id="sendBtn">Send</button>
       </div>
       <div id="emojiPicker" style="display:none"></div>
-      <input id="captionInput" class="caption-input" placeholder="Caption for next image (optional)"/>
     </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded, onChildChanged, onChildRemoved, set, child, get, update } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+    import { getDatabase, ref, push, onChildAdded, set, child, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
-    // 🔥 Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAqcF-u7zaTc0CwgXORBNi0ehhYYMG5a6g",
       authDomain: "titibankpumpfun.firebaseapp.com",
@@ -74,12 +74,6 @@
       messagingSenderId: "713215451720",
       appId: "1:713215451720:web:a9ead74e25448f431fee7d"
     };
-
-    // ✅ ImageKit setup (testing mode ON)
-    const USE_PRIVATE_KEY_FOR_IMGKIT = true; 
-    const IMAGEKIT_PRIVATE_KEY = "private_k4q1Dj0mdO7laABQ/3DNodwATfA="; 
-    const IMAGEKIT_PUBLIC_KEY = "public_6MDkzxKFxdmlY1RsT/NsiyTLMmo=";
-    const IMAGEKIT_FOLDER = "chat_images"; 
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
@@ -97,126 +91,132 @@
     const emojiPicker = document.getElementById('emojiPicker');
     const fileInput = document.getElementById('fileInput');
     const imgBtn = document.getElementById('imgBtn');
-    const captionInput = document.getElementById('captionInput');
+    const imgPreview = document.getElementById('imgPreview');
 
     let currentUser = null;
     let canSend = false;
+    let pendingImage = null;
 
-    // Emoji Picker
+    // emoji picker
     const emojis = ["😀","😁","😂","🤣","😊","😍","😎","😢","😡","👍","🙏","🔥","❤️"];
     emojis.forEach(e=>{
-      const s=document.createElement('span');
-      s.textContent=e;
-      s.onclick=()=>{ msgInput.value+=e; emojiPicker.style.display='none'; };
+      const s = document.createElement('span');
+      s.textContent = e;
+      s.onclick = ()=>{ msgInput.value += e; emojiPicker.style.display='none'; };
       emojiPicker.appendChild(s);
     });
-    emojiToggle.onclick=()=>{ emojiPicker.style.display=emojiPicker.style.display==='flex'?'none':'flex'; emojiPicker.style.flexWrap='wrap'; };
+    emojiToggle.addEventListener('click', ()=> {
+      emojiPicker.style.display = emojiPicker.style.display==='flex'?'none':'flex';
+      emojiPicker.style.flexWrap='wrap';
+    });
 
+    // avatar generator
     function avatarFor(name){ return `https://avatars.dicebear.com/api/identicon/${encodeURIComponent(name)}.svg`; }
 
     signInAnonymously(auth);
     onAuthStateChanged(auth, async (user)=>{
       if(!user) return;
-      currentUser={ uid:user.uid, username:null, avatar:null };
-      statusEl.textContent="Connected";
+      currentUser = { uid:user.uid, username:null, avatar:null };
+      statusEl.textContent = "Connected";
 
-      const snap=await get(child(ref(db),'users/'+user.uid));
+      const snap = await get(child(ref(db),'users/'+user.uid));
       if(snap.exists()){
-        const d=snap.val(); 
-        currentUser.username=d.username; 
-        currentUser.avatar=d.avatar||avatarFor(d.username); 
+        const d=snap.val();
+        currentUser.username=d.username;
+        currentUser.avatar=d.avatar;
         openChat();
       }
-      onChildAdded(ref(db,'messages'),s=>renderMessage(s.key,s.val()));
-      onChildChanged(ref(db,'messages'),s=>updateMessageDom(s.key,s.val()));
-      onChildRemoved(ref(db,'messages'),s=>removeMessageDom(s.key));
+
+      onChildAdded(ref(db,'messages'), (snap)=> appendMessage(snap.val()));
     });
 
-    saveUsernameBtn.onclick=async()=>{
-      const name=usernameInput.value.trim();
+    saveUsernameBtn.addEventListener('click', async ()=>{
+      const name = usernameInput.value.trim();
       if(!name) return alert("Enter username");
-      const avatar=avatarFor(name);
+      const avatar = avatarFor(name);
       await set(ref(db,'users/'+currentUser.uid),{username:name,avatar});
-      currentUser.username=name; currentUser.avatar=avatar; openChat();
-    };
-    readOnlyBtn.onclick=()=>{ document.getElementById('usernameArea').style.display='none'; compose.style.display='none'; canSend=false; };
-    function openChat(){ document.getElementById('usernameArea').style.display='none'; compose.style.display='block'; canSend=true; }
+      currentUser.username=name;
+      currentUser.avatar=avatar;
+      openChat();
+    });
 
-    sendBtn.onclick=sendMessage;
-    msgInput.onkeydown=e=>{ if(e.key==="Enter") sendMessage(); };
-    async function sendMessage(){
+    readOnlyBtn.addEventListener('click', ()=>{
+      document.getElementById('usernameArea').style.display='none';
+      compose.style.display='none';
+      canSend=false;
+    });
+
+    function openChat(){
+      document.getElementById('usernameArea').style.display='none';
+      compose.style.display='block';
+      canSend=true;
+    }
+
+    // send text or text+image
+    sendBtn.addEventListener('click', async ()=>{
       if(!canSend) return alert("Set username first");
-      const text=msgInput.value.trim(); if(!text) return;
-      await push(ref(db,'messages'),{uid:currentUser.uid,username:currentUser.username,avatar:currentUser.avatar,type:'text',text,ts:Date.now()});
+      const text = msgInput.value.trim();
+      if(!text && !pendingImage) return;
+
+      const payload = {
+        uid:currentUser.uid,
+        username:currentUser.username,
+        avatar:currentUser.avatar,
+        ts:Date.now()
+      };
+
+      if(pendingImage){
+        payload.type='image';
+        payload.text=pendingImage;
+        if(text) payload.caption=text;
+        pendingImage=null;
+        imgPreview.style.display='none';
+      } else {
+        payload.type='text';
+        payload.text=text;
+      }
+
+      await push(ref(db,'messages'),payload);
       msgInput.value='';
-    }
+    });
 
-    imgBtn.onclick=()=>fileInput.click();
-    fileInput.onchange=async e=>{
-      const file=e.target.files[0]; if(!file||!canSend) return;
-      const placeholder={uid:currentUser.uid,username:currentUser.username,avatar:currentUser.avatar,type:'image',text:'',caption:captionInput.value.trim(),ts:Date.now(),status:'uploading'};
-      const newRef=await push(ref(db,'messages'),placeholder);
-      const messageKey=newRef.key;
-      try{
-        const form=new FormData();
-        form.append('file',file);
-        form.append('fileName',file.name);
-        if(IMAGEKIT_FOLDER) form.append('folder',IMAGEKIT_FOLDER);
-        const authHeader="Basic "+btoa(IMAGEKIT_PRIVATE_KEY+":");
-        const uploadRes=await fetch("https://upload.imagekit.io/api/v1/files/upload",{method:"POST",headers:{Authorization:authHeader},body:form});
-        const uploadJson=await uploadRes.json();
-        if(!uploadRes.ok) throw new Error(JSON.stringify(uploadJson));
-        const imageUrl=uploadJson.url;
-        await update(ref(db,'messages/'+messageKey),{text:imageUrl,status:'sent',ts:Date.now()});
-        captionInput.value='';
-      }catch(err){ console.error(err); await update(ref(db,'messages/'+messageKey),{status:'failed'}); alert("Image upload failed: "+err.message); }
-    };
+    // image selection -> preview only
+    imgBtn.addEventListener('click',()=> fileInput.click());
+    fileInput.addEventListener('change', e=>{
+      const file=e.target.files[0];
+      if(!file) return;
+      const reader=new FileReader();
+      reader.onload=ev=>{
+        pendingImage=ev.target.result;
+        imgPreview.innerHTML=`<img src="${pendingImage}" alt="preview"/>`;
+        imgPreview.style.display='block';
+      };
+      reader.readAsDataURL(file);
+    });
 
-    async function toggleReaction(msgId,emoji){
-      if(!currentUser) return;
-      const userReactRef=ref(db,`messages/${msgId}/reactions/${currentUser.uid}`);
-      const snap=await get(child(ref(db),`messages/${msgId}/reactions/${currentUser.uid}`));
-      const existing=snap.exists()?snap.val():null;
-      await set(userReactRef, existing===emoji?null:emoji);
-    }
+    // render messages
+    function appendMessage(msg){
+      const row=document.createElement('div');
+      row.className='msg-row';
 
-    const domMap=new Map();
-    function renderMessage(msgId,msg){
-      if(domMap.has(msgId)) return updateMessageDom(msgId,msg);
-      const row=document.createElement('div'); row.className='msg-row'; row.id='msg-'+msgId;
-      const avatar=document.createElement('img'); avatar.className='avatar'; avatar.src=msg.avatar||avatarFor(msg.username||'anon');
-      const bubble=document.createElement('div'); bubble.className='bubble';
-      const meta=document.createElement('div'); meta.className='meta'; meta.innerHTML=`${msg.username||'Unknown'} <span class="small-muted">${new Date(msg.ts).toLocaleTimeString()}</span>`;
-      const content=document.createElement('div');
+      const avatar=document.createElement('img');
+      avatar.className='avatar';
+      avatar.src=msg.avatar||avatarFor(msg.username);
+      row.appendChild(avatar);
+
+      const bubble=document.createElement('div');
+      bubble.className='bubble';
+      bubble.innerHTML=`<div class="meta">${msg.username} <span class="time">${new Date(msg.ts).toLocaleTimeString()}</span></div>`;
       if(msg.type==='image'){
-        if(msg.status==='uploading'){ content.innerHTML='<div class="sending">📤 Sending image...</div>'; }
-        else if(msg.status==='failed'){ content.innerHTML='<div class="sending">❌ Upload failed</div>'; }
-        else{ if(msg.text) content.innerHTML+=`<img class="chat-img" src="${msg.text}"/>`; if(msg.caption) content.innerHTML+=`<div class="caption">${msg.caption}</div>`; }
-      }else{ content.textContent=msg.text||''; }
-      const reactionsWrap=document.createElement('div'); reactionsWrap.className='reactions';
-      ["👍","❤️","😂","🔥"].forEach(em=>{ const rb=document.createElement('div'); rb.className='reaction-btn'; rb.textContent=em; rb.onclick=()=>toggleReaction(msgId,em); reactionsWrap.appendChild(rb); });
-      const agg=document.createElement('div'); agg.className='agg'; reactionsWrap.appendChild(agg);
-      bubble.appendChild(meta); bubble.appendChild(content); bubble.appendChild(reactionsWrap);
-      row.appendChild(avatar); row.appendChild(bubble);
-      messagesEl.appendChild(row); messagesEl.scrollTop=messagesEl.scrollHeight;
-      domMap.set(msgId,{row,content,agg}); renderAggregatedReactions(msgId,msg);
-    }
-    function updateMessageDom(msgId,msg){
-      const m=domMap.get(msgId); if(!m) return renderMessage(msgId,msg);
-      m.content.innerHTML='';
-      if(msg.type==='image'){
-        if(msg.status==='uploading') m.content.innerHTML='<div class="sending">📤 Sending image...</div>';
-        else if(msg.status==='failed') m.content.innerHTML='<div class="sending">❌ Upload failed</div>';
-        else{ if(msg.text) m.content.innerHTML+=`<img class="chat-img" src="${msg.text}"/>`; if(msg.caption) m.content.innerHTML+=`<div class="caption">${msg.caption}</div>`; }
-      }else m.content.textContent=msg.text||'';
-      renderAggregatedReactions(msgId,msg);
-    }
-    function removeMessageDom(msgId){ const m=domMap.get(msgId); if(m){ m.row.remove(); domMap.delete(msgId);} }
-    function renderAggregatedReactions(msgId,msg){
-      const m=domMap.get(msgId); if(!m) return;
-      m.agg.innerHTML=''; const reactions=msg.reactions||{}; const counts={};
-      for(const uid in reactions){ const em=reactions[uid]; if(em) counts[em]=(counts[em]||0)+1; }
-      Object.keys(counts).forEach(em=>{ const btn=document.createElement('div'); btn.className='reaction-btn'; if(msg.reactions&&currentUser&&msg.reactions[currentUser.uid]===em) btn.classList.add('you'); btn.textContent=`${em} ${counts[em]}`; btn.onclick=()=>toggleReaction(msgId,em); m.agg.appendChild(btn); });
+        bubble.innerHTML+=`<img src="${msg.text}" class="chat-img"/>`;
+        if(msg.caption) bubble.innerHTML+=`<div class="caption">${msg.caption}</div>`;
+      } else {
+        bubble.innerHTML+=`<div>${msg.text}</div>`;
+      }
+      row.appendChild(bubble);
+
+      messagesEl.appendChild(row);
+      messagesEl.scrollTop=messagesEl.scrollHeight;
     }
   </script>
 </body>
