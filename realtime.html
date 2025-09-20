@@ -1,87 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TitiBank Coin Live Dashboard</title>
+  <title>TitiBank Coin Dashboard — BLESS / SOL</title>
   <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
   <style>
-    body { margin:0; font-family: Arial, sans-serif; background:#0d1117; color:#fff; }
+    body { margin:0; background:#0d1117; color:#fff; font-family:Arial,sans-serif; }
     .dashboard { display:flex; height:100vh; }
-    .chart-container { flex:3; }
-    .stats { flex:1; background:#161b22; padding:20px; display:flex; flex-direction:column; gap:14px; }
-    .stat-box { background:#1f2733; padding:14px; border-radius:8px; }
-    .stat-box h3 { margin:0; font-size:14px; opacity:0.8; }
-    .stat-box p { margin:4px 0 0; font-size:18px; font-weight:bold; }
+    .chart-container { flex:3; padding:20px; }
+    .stats { flex:1; background:#161b22; padding:20px; display:flex; flex-direction:column; gap:15px; }
+    .stat-box { background:#1f2733; padding:15px; border-radius:8px; }
+    .stat-box h3 { margin:0; font-size:14px; color:#aaa; }
+    .stat-box p { margin:5px 0 0; font-size:18px; font-weight:bold; color:#fff; }
     .green { color:#4caf50; }
     .red { color:#f44336; }
   </style>
 </head>
 <body>
   <div class="dashboard">
-    <!-- Chart -->
     <div id="chart" class="chart-container"></div>
-
-    <!-- Stats Panel -->
     <div class="stats">
       <div class="stat-box"><h3>Price (USD)</h3><p id="priceUsd">--</p></div>
-      <div class="stat-box"><h3>Price (SOL)</h3><p id="priceSol">--</p></div>
       <div class="stat-box"><h3>Liquidity</h3><p id="liquidity">--</p></div>
-      <div class="stat-box"><h3>Market Cap</h3><p id="marketCap">--</p></div>
+      <div class="stat-box"><h3>Market Cap (FDV)</h3><p id="marketCap">--</p></div>
       <div class="stat-box"><h3>24h Volume</h3><p id="volume">--</p></div>
       <div class="stat-box"><h3>24h Change</h3><p id="change">--</p></div>
-      <div class="stat-box"><h3>Transactions</h3><p id="txns">--</p></div>
-      <div class="stat-box"><h3>Buys / Sells</h3><p><span id="buys">--</span> / <span id="sells">--</span></p></div>
+      <div class="stat-box"><h3>Transactions 24h</h3><p id="txns">--</p></div>
+      <div class="stat-box"><h3>Holders</h3><p id="holders">--</p></div>
     </div>
   </div>
 
   <script>
     const apiUrl = "https://api.dexscreener.com/latest/dex/tokens/F2167vaB18Pt9mJKMLAGUajd3sHeAgZbdvQyJyWXpump";
 
-    // Setup Chart
+    const priceUsdEl = document.getElementById("priceUsd");
+    const liquidityEl = document.getElementById("liquidity");
+    const marketCapEl = document.getElementById("marketCap");
+    const volumeEl = document.getElementById("volume");
+    const changeEl = document.getElementById("change");
+    const txnsEl = document.getElementById("txns");
+    const holdersEl = document.getElementById("holders");
+
+    // Setup chart
     const chart = LightweightCharts.createChart(document.getElementById('chart'), {
       layout: { background: { color: '#0d1117' }, textColor: '#d1d4dc' },
       grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
       timeScale: { timeVisible: true, borderColor: '#2a2e39' },
       priceScale: { borderColor: '#2a2e39' }
     });
-
     const candleSeries = chart.addCandlestickSeries({
       upColor: '#4caf50', downColor: '#f44336', borderVisible: false,
       wickUpColor: '#4caf50', wickDownColor: '#f44336'
     });
 
     async function fetchData() {
-      const res = await fetch(apiUrl);
-      const data = await res.json();
-      if (!data.pairs) return;
-      const token = data.pairs[0];
+      try {
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+        if (!data.pairs || data.pairs.length === 0) {
+          console.log("No pairs data");
+          return;
+        }
+        const token = data.pairs.find(p => p.baseToken.address.toLowerCase().includes("f2167vab18pt9mjkmlaguajd3sheagzbdvqyjywxpump")) || data.pairs[0];
 
-      // Update stats
-      document.getElementById("priceUsd").textContent = `$${parseFloat(token.priceUsd).toFixed(6)}`;
-      document.getElementById("priceSol").textContent = `${parseFloat(token.priceNative).toFixed(6)} SOL`;
-      document.getElementById("liquidity").textContent = `$${Number(token.liquidity.usd).toLocaleString()}`;
-      document.getElementById("marketCap").textContent = `$${Number(token.fdv).toLocaleString()}`;
-      document.getElementById("volume").textContent = `$${Number(token.volume.h24).toLocaleString()}`;
-      document.getElementById("change").innerHTML = `${token.priceChange.h24}%`;
-      document.getElementById("change").className = token.priceChange.h24 >= 0 ? "green" : "red";
-      document.getElementById("txns").textContent = `${Number(token.txns.h24).toLocaleString()}`;
-      document.getElementById("buys").textContent = token.buys.h24;
-      document.getElementById("sells").textContent = token.sells.h24;
+        priceUsdEl.textContent = token.priceUsd ? `$${parseFloat(token.priceUsd).toFixed(6)}` : "--";
+        liquidityEl.textContent = token.liquidity && token.liquidity.usd ? `$${Number(token.liquidity.usd).toLocaleString()}` : "--";
+        marketCapEl.textContent = token.fdv ? `$${Number(token.fdv).toLocaleString()}` : "--";
+        volumeEl.textContent = token.volume && token.volume.h24 ? `$${Number(token.volume.h24).toLocaleString()}` : "--";
+        changeEl.textContent = token.priceChange && token.priceChange.h24 ? `${token.priceChange.h24}%` : "--";
+        changeEl.className = (token.priceChange && token.priceChange.h24 >= 0) ? "green" : "red";
+        txnsEl.textContent = token.txns && token.txns.h24 ? token.txns.h24.toLocaleString() : "--";
 
-      // Fake candlestick (Dexscreener API doesn’t give OHLC candles)
-      const now = Math.floor(Date.now() / 1000);
-      candleSeries.update({
-        time: now,
-        open: token.priceUsd,
-        high: token.priceUsd * 1.01,
-        low: token.priceUsd * 0.99,
-        close: token.priceUsd
-      });
+        // For holders: use Solscan API
+        await fetchHolders();
+
+        // Update chart (simulate candle)
+        const now = Math.floor(Date.now() / 1000);
+        candleSeries.update({
+          time: now,
+          open: token.priceUsd,
+          high: token.priceUsd * 1.005,
+          low: token.priceUsd * 0.995,
+          close: token.priceUsd
+        });
+
+      } catch(e) {
+        console.error("Error fetching:", e);
+      }
+    }
+
+    async function fetchHolders() {
+      // Example using Solscan public API
+      const solscanTokenInfoUrl = "https://public-api.solscan.io/token/meta?tokenAddress=F2167vaB18Pt9mJKMLAGUajd3sHeAgZbdvQyJyWXpump";
+      try {
+        const r = await fetch(solscanTokenInfoUrl);
+        const j = await r.json();
+        if (j && j.data && j.data.holders) {
+          holdersEl.textContent = j.data.holders.toLocaleString();
+        } else {
+          holdersEl.textContent = "––";
+        }
+      } catch(er) {
+        console.warn("Holders fetch error:", er);
+        holdersEl.textContent = "––";
+      }
     }
 
     fetchData();
-    setInterval(fetchData, 10000); // update every 10 sec
+    setInterval(fetchData, 15000); // every 15 seconds
   </script>
 </body>
 </html>
