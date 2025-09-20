@@ -20,6 +20,8 @@
     .stat p { font-size:18px; font-weight:bold; margin:6px 0 0; }
     .mini-chart { height:60px; margin-top:10px; }
     canvas { margin-top:20px; }
+    .ohlc-bar { text-align:center; margin-top:10px; font-weight:bold; font-size:14px; }
+    .ohlc-bar span { margin:0 8px; }
   </style>
 </head>
 <body>
@@ -39,7 +41,17 @@
       </div>
       <div class="stat"><h3>24h Change</h3><p id="change">--</p></div>
     </div>
+    
+    <!-- Main candlestick chart -->
     <canvas id="priceChart" height="200"></canvas>
+
+    <!-- OHLC Info Bar -->
+    <div id="ohlc" class="ohlc-bar">
+      <span id="open">O: --</span>
+      <span id="high">H: --</span>
+      <span id="low">L: --</span>
+      <span id="close">C: --</span>
+    </div>
   </div>
 
   <script>
@@ -113,27 +125,22 @@
         const now = Date.now();
         const price = parseFloat(token.priceUsd);
 
-        candleData.push({
+        const candle = {
           x: now,
-          o: price * (0.999 + Math.random() * 0.002), // simulate small open
+          o: price * (0.999 + Math.random() * 0.002),
           h: price * (1 + Math.random() * 0.001),
           l: price * (1 - Math.random() * 0.001),
           c: price
-        });
+        };
 
+        candleData.push(candle);
         if (candleData.length > 60) candleData.shift();
 
         if (!candleChart) {
           const ctx = document.getElementById("priceChart").getContext("2d");
           candleChart = new Chart(ctx, {
             type: 'candlestick',
-            data: {
-              datasets: [{
-                label: "Price (USD)",
-                data: candleData,
-                borderColor: "#000"
-              }]
-            },
+            data: { datasets: [{ label: "Price (USD)", data: candleData }] },
             options: {
               responsive: true,
               animation: false,
@@ -148,6 +155,15 @@
           candleChart.data.datasets[0].data = candleData;
           candleChart.update();
         }
+
+        // === Update OHLC Info Bar ===
+        document.getElementById("open").textContent = `O: ${candle.o.toFixed(6)}`;
+        document.getElementById("high").textContent = `H: ${candle.h.toFixed(6)}`;
+        document.getElementById("low").textContent = `L: ${candle.l.toFixed(6)}`;
+        document.getElementById("close").textContent = `C: ${candle.c.toFixed(6)}`;
+
+        const ohlcColor = candle.c >= candle.o ? "green" : "red";
+        document.getElementById("ohlc").style.color = ohlcColor;
 
       } catch (err) {
         console.error("API fetch error:", err);
