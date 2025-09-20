@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TitiBank Coin Live Data</title>
+  <title>TitiBank Live Data</title>
 
   <!-- Chart.js + Financial Plugin -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -144,12 +144,43 @@
             options: {
               responsive: true,
               animation: false,
-              plugins: { legend: { labels: { color: "#042a57" } } },
+              interaction: { mode: 'nearest', intersect: false },
+              plugins: {
+                legend: { labels: { color: "#042a57" } },
+                tooltip: {
+                  enabled: true,
+                  callbacks: {
+                    label: function(ctx) {
+                      const d = ctx.raw;
+                      return `O: ${d.o.toFixed(6)} | H: ${d.h.toFixed(6)} | L: ${d.l.toFixed(6)} | C: ${d.c.toFixed(6)}`;
+                    }
+                  }
+                }
+              },
               scales: {
                 x: { ticks: { autoSkip: true, maxTicksLimit: 6 } },
                 y: { beginAtZero: false }
               }
-            }
+            },
+            plugins: [{
+              // Crosshair drawing plugin
+              id: 'crosshair',
+              afterDraw: chart => {
+                if (chart.tooltip?._active?.length) {
+                  const ctx = chart.ctx;
+                  const x = chart.tooltip._active[0].element.x;
+                  const yAxis = chart.scales.y;
+                  ctx.save();
+                  ctx.beginPath();
+                  ctx.moveTo(x, yAxis.top);
+                  ctx.lineTo(x, yAxis.bottom);
+                  ctx.lineWidth = 1;
+                  ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+                  ctx.stroke();
+                  ctx.restore();
+                }
+              }
+            }]
           });
         } else {
           candleChart.data.datasets[0].data = candleData;
