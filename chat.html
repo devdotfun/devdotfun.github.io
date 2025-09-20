@@ -176,9 +176,12 @@
 
       await push(ref(db,'messages'),payload);
 
-      // ✅ ab har case me clear hoga
-      msgInput.value='';
-      fileInput.value='';
+     // ✅ hamesha clear karna chahiye (sirf text / image / dono sab case me)
+      msgInput.value = '';
+      fileInput.value = '';
+      imgPreview.style.display = 'none';
+      pendingImage = null;
+
     });
 
     // image select -> preview
