@@ -3,95 +3,85 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TitiBank Coin Live Data</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>TitiBank Coin Live Dashboard</title>
+  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; background:#f5f7fa; padding:20px; color:#111; }
-    h1 { color:#042a57; }
-    .card { background:#fff; padding:20px; border-radius:12px; box-shadow:0 6px 14px rgba(0,0,0,0.08); margin-bottom:20px; }
-    .stats { display:flex; flex-wrap:wrap; gap:20px; }
-    .stat { flex:1; min-width:180px; background:#fafafa; padding:12px; border-radius:8px; text-align:center; }
-    .stat h3 { margin:0; font-size:16px; color:#042a57; }
-    .stat p { font-size:18px; font-weight:bold; margin:6px 0 0; }
-    canvas { margin-top:20px; }
+    body { margin:0; font-family: Arial, sans-serif; background:#0d1117; color:#fff; }
+    .dashboard { display:flex; height:100vh; }
+    .chart-container { flex:3; }
+    .stats { flex:1; background:#161b22; padding:20px; display:flex; flex-direction:column; gap:14px; }
+    .stat-box { background:#1f2733; padding:14px; border-radius:8px; }
+    .stat-box h3 { margin:0; font-size:14px; opacity:0.8; }
+    .stat-box p { margin:4px 0 0; font-size:18px; font-weight:bold; }
+    .green { color:#4caf50; }
+    .red { color:#f44336; }
   </style>
 </head>
 <body>
+  <div class="dashboard">
+    <!-- Chart -->
+    <div id="chart" class="chart-container"></div>
 
-  <h1>📊 TitiBank Coin Realtime Data</h1>
-
-  <div class="card">
+    <!-- Stats Panel -->
     <div class="stats">
-      <div class="stat"><h3>Price (USD)</h3><p id="priceUsd">--</p></div>
-      <div class="stat"><h3>Price (SOL)</h3><p id="priceSol">--</p></div>
-      <div class="stat"><h3>24h Volume</h3><p id="volume">--</p></div>
-      <div class="stat"><h3>Liquidity (USD)</h3><p id="liquidity">--</p></div>
-      <div class="stat"><h3>24h Change</h3><p id="change">--</p></div>
+      <div class="stat-box"><h3>Price (USD)</h3><p id="priceUsd">--</p></div>
+      <div class="stat-box"><h3>Price (SOL)</h3><p id="priceSol">--</p></div>
+      <div class="stat-box"><h3>Liquidity</h3><p id="liquidity">--</p></div>
+      <div class="stat-box"><h3>Market Cap</h3><p id="marketCap">--</p></div>
+      <div class="stat-box"><h3>24h Volume</h3><p id="volume">--</p></div>
+      <div class="stat-box"><h3>24h Change</h3><p id="change">--</p></div>
+      <div class="stat-box"><h3>Transactions</h3><p id="txns">--</p></div>
+      <div class="stat-box"><h3>Buys / Sells</h3><p><span id="buys">--</span> / <span id="sells">--</span></p></div>
     </div>
-    <canvas id="priceChart" height="120"></canvas>
   </div>
 
   <script>
     const apiUrl = "https://api.dexscreener.com/latest/dex/tokens/F2167vaB18Pt9mJKMLAGUajd3sHeAgZbdvQyJyWXpump";
-    let chart;
+
+    // Setup Chart
+    const chart = LightweightCharts.createChart(document.getElementById('chart'), {
+      layout: { background: { color: '#0d1117' }, textColor: '#d1d4dc' },
+      grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
+      timeScale: { timeVisible: true, borderColor: '#2a2e39' },
+      priceScale: { borderColor: '#2a2e39' }
+    });
+
+    const candleSeries = chart.addCandlestickSeries({
+      upColor: '#4caf50', downColor: '#f44336', borderVisible: false,
+      wickUpColor: '#4caf50', wickDownColor: '#f44336'
+    });
 
     async function fetchData() {
       const res = await fetch(apiUrl);
       const data = await res.json();
-
-      if (!data.pairs || data.pairs.length === 0) return;
-
+      if (!data.pairs) return;
       const token = data.pairs[0];
+
+      // Update stats
       document.getElementById("priceUsd").textContent = `$${parseFloat(token.priceUsd).toFixed(6)}`;
       document.getElementById("priceSol").textContent = `${parseFloat(token.priceNative).toFixed(6)} SOL`;
-      document.getElementById("volume").textContent = `$${Number(token.volume.h24).toLocaleString()}`;
       document.getElementById("liquidity").textContent = `$${Number(token.liquidity.usd).toLocaleString()}`;
-      document.getElementById("change").textContent = `${token.priceChange.h24}%`;
+      document.getElementById("marketCap").textContent = `$${Number(token.fdv).toLocaleString()}`;
+      document.getElementById("volume").textContent = `$${Number(token.volume.h24).toLocaleString()}`;
+      document.getElementById("change").innerHTML = `${token.priceChange.h24}%`;
+      document.getElementById("change").className = token.priceChange.h24 >= 0 ? "green" : "red";
+      document.getElementById("txns").textContent = `${Number(token.txns.h24).toLocaleString()}`;
+      document.getElementById("buys").textContent = token.buys.h24;
+      document.getElementById("sells").textContent = token.sells.h24;
 
-      // Chart update
-      const labels = [];
-      const prices = [];
-
-      // Dexscreener API doesn't return full history, so we fake short history by refreshing
-      const now = new Date().toLocaleTimeString();
-      labels.push(now);
-      prices.push(token.priceUsd);
-
-      if (!chart) {
-        const ctx = document.getElementById('priceChart').getContext('2d');
-        chart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels,
-            datasets: [{
-              label: 'Price (USD)',
-              data: prices,
-              borderColor: '#e63946',
-              backgroundColor: 'rgba(230,57,70,0.2)',
-              fill: true,
-              tension: 0.2
-            }]
-          },
-          options: {
-            responsive: true,
-            scales: {
-              y: { beginAtZero: false }
-            }
-          }
-        });
-      } else {
-        chart.data.labels.push(now);
-        chart.data.datasets[0].data.push(token.priceUsd);
-        if (chart.data.labels.length > 20) {
-          chart.data.labels.shift();
-          chart.data.datasets[0].data.shift();
-        }
-        chart.update();
-      }
+      // Fake candlestick (Dexscreener API doesn’t give OHLC candles)
+      const now = Math.floor(Date.now() / 1000);
+      candleSeries.update({
+        time: now,
+        open: token.priceUsd,
+        high: token.priceUsd * 1.01,
+        low: token.priceUsd * 0.99,
+        close: token.priceUsd
+      });
     }
 
     fetchData();
-    setInterval(fetchData, 10000); // refresh every 10s
+    setInterval(fetchData, 10000); // update every 10 sec
   </script>
 </body>
 </html>
