@@ -2,25 +2,25 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Chat (Live)</title>
+  <title>Live Chat</title>
   <style>
-    body{font-family:Arial,sans-serif; background:#f4f4f9; margin:0; padding:20px;}
-    .wrap{max-width:700px; margin:auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1);}
-    #messages{height:400px; overflow-y:auto; border:1px solid #ddd; padding:10px; margin-bottom:10px;}
-    .msg{margin-bottom:10px; padding:6px 10px; background:#f9f9f9; border-radius:6px;}
-    .meta{font-weight:bold; font-size:13px;}
-    .time{font-size:11px; color:#666; margin-left:5px;}
-    #controls{display:flex; gap:5px; margin-top:10px;}
-    #msgInput{flex:1; padding:8px;}
-    button{padding:8px 12px; cursor:pointer;}
-    #emojiPicker{position:absolute; bottom:60px; background:#fff; border:1px solid #ccc; padding:5px; display:none; flex-wrap:wrap; max-width:200px;}
-    #emojiPicker span{cursor:pointer; padding:5px;}
-    img.chat-img{max-width:200px; border-radius:6px; margin-top:5px;}
+    body{font-family:Arial,sans-serif;background:#f4f4f9;margin:0;padding:20px;}
+    .wrap{max-width:700px;margin:auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1);}
+    #messages{height:400px;overflow-y:auto;border:1px solid #ddd;padding:10px;margin-bottom:10px;}
+    .msg{margin-bottom:10px;padding:6px 10px;background:#f9f9f9;border-radius:6px;}
+    .meta{font-weight:bold;font-size:13px;}
+    .time{font-size:11px;color:#666;margin-left:5px;}
+    #controls{display:flex;gap:5px;margin-top:10px;}
+    #msgInput{flex:1;padding:8px;}
+    button{padding:8px 12px;cursor:pointer;}
+    #emojiPicker{position:absolute;bottom:60px;background:#fff;border:1px solid #ccc;padding:5px;display:none;flex-wrap:wrap;max-width:200px;}
+    #emojiPicker span{cursor:pointer;padding:5px;}
+    img.chat-img{max-width:200px;border-radius:6px;margin-top:5px;}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h2>💬 Live Chat (With Emoji + Images)</h2>
+    <h2>💬 Live Chat (Emoji + Images)</h2>
     <div id="status">Connecting...</div>
 
     <div id="usernameArea">
@@ -48,7 +48,7 @@
     import { getDatabase, ref, push, onChildAdded, set, child, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
-    // Firebase config
+    // 🔹 Firebase config (aapka apna project config)
     const firebaseConfig = {
       apiKey: "AIzaSyAqcF-u7zaTc0CwgXORBNi0ehhYYMG5a6g",
       authDomain: "titibankpumpfun.firebaseapp.com",
@@ -63,6 +63,7 @@
     const db = getDatabase(app);
     const auth = getAuth(app);
 
+    // 🔹 DOM elements
     const statusEl = document.getElementById('status');
     const messagesEl = document.getElementById('messages');
     const msgInput = document.getElementById('msgInput');
@@ -80,6 +81,7 @@
     let currentUser = null;
     let canSend = false;
 
+    // 🔹 Firebase Auth
     signInAnonymously(auth);
 
     onAuthStateChanged(auth, async (user)=>{
@@ -149,7 +151,7 @@
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
-    // Emoji picker
+    // 🔹 Emoji Picker
     const emojis = ["😀","😁","😂","🤣","😊","😍","😎","😢","😡","👍","🙏","🔥","❤️"];
     emojis.forEach(e=>{
       const span = document.createElement('span');
@@ -161,7 +163,7 @@
       emojiPicker.style.display = emojiPicker.style.display==="flex"?"none":"flex";
     });
 
-    // Image Upload with ImageKit
+    // 🔹 Image Upload with ImageKit
     imgBtn.addEventListener('click', ()=> imgInput.click());
 
     async function uploadToImageKit(file){
@@ -172,12 +174,17 @@
       const res = await fetch("https://upload.imagekit.io/api/v1/files/upload", {
         method: "POST",
         headers: {
-          Authorization: "Basic " + btoa("public_6MDkzxKFxdmlY1RsT/NsiyTLMmo=:"),
+          Authorization: "Basic " + btoa("public_6MDkzxKFxdmlY1RsT/NsiyTLMmo=" + ":"),
         },
         body: formData,
       });
 
       const data = await res.json();
+      if(!res.ok){
+        console.error("Upload error:", data);
+        alert("Image upload failed!");
+        return null;
+      }
       return data.url;
     }
 
@@ -185,13 +192,15 @@
       const file = e.target.files[0];
       if(file && canSend){
         const url = await uploadToImageKit(file);
-        await push(ref(db, 'messages'), {
-          uid: currentUser.uid,
-          username: currentUser.username,
-          text: url,
-          ts: Date.now(),
-          type: "image"
-        });
+        if(url){
+          await push(ref(db, 'messages'), {
+            uid: currentUser.uid,
+            username: currentUser.username,
+            text: url,
+            ts: Date.now(),
+            type: "image"
+          });
+        }
       }
     });
 
