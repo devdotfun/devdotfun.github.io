@@ -3,17 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Titi Bank</title>
+  <title>TitiBank Coin Live Data</title>
+
+  <!-- Chart.js + Financial Plugin -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
+
   <style>
     body { font-family: Arial, sans-serif; background:#f5f7fa; padding:20px; color:#111; }
     h1 { color:#042a57; text-align:center; margin-bottom:20px; }
     .card { background:#fff; padding:20px; border-radius:14px; box-shadow:0 6px 16px rgba(0,0,0,0.1); margin-bottom:20px; }
     .stats { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; }
-    .stat { flex:1; min-width:160px; background:#fafafa; padding:14px; border-radius:10px; text-align:center; transition:0.3s; }
+    .stat { flex:1; min-width:180px; background:#fafafa; padding:14px; border-radius:10px; text-align:center; transition:0.3s; position:relative; }
     .stat:hover { background:#f0f4ff; transform:scale(1.03); }
     .stat h3 { margin:0; font-size:15px; color:#042a57; font-weight:600; }
     .stat p { font-size:18px; font-weight:bold; margin:6px 0 0; }
+    .mini-chart { height:60px; margin-top:10px; }
     canvas { margin-top:20px; }
   </style>
 </head>
@@ -27,80 +32,121 @@
       <div class="stat"><h3>Price (SOL)</h3><p id="priceSol">--</p></div>
       <div class="stat"><h3>24h Volume</h3><p id="volume">--</p></div>
       <div class="stat"><h3>Liquidity (USD)</h3><p id="liquidity">--</p></div>
-      <div class="stat"><h3>Market Cap</h3><p id="marketcap">--</p></div>
+      <div class="stat">
+        <h3>Market Cap</h3>
+        <p id="marketcap">--</p>
+        <canvas id="marketCapChart" class="mini-chart"></canvas>
+      </div>
       <div class="stat"><h3>24h Change</h3><p id="change">--</p></div>
     </div>
-    <canvas id="priceChart" height="120"></canvas>
+    <canvas id="priceChart" height="200"></canvas>
   </div>
 
   <script>
     const apiUrl = "https://api.dexscreener.com/latest/dex/tokens/F2167vaB18Pt9mJKMLAGUajd3sHeAgZbdvQyJyWXpump";
-    let chart;
-    let labels = [];
-    let prices = [];
+    let candleChart;
+    let marketCapChart;
+    let candleData = [];
+    let marketCapHistory = [];
+
+    // Shorten large numbers (10k, 1.2M, etc.)
+    function formatNumber(num) {
+      if (num >= 1e9) return (num / 1e9).toFixed(2) + "B";
+      if (num >= 1e6) return (num / 1e6).toFixed(2) + "M";
+      if (num >= 1e3) return (num / 1e3).toFixed(2) + "K";
+      return num.toString();
+    }
 
     async function fetchData() {
       try {
         const res = await fetch(apiUrl);
         const data = await res.json();
-
         if (!data.pairs || data.pairs.length === 0) return;
 
         const token = data.pairs[0];
 
-        // Update stats
+        // Update Stats
         document.getElementById("priceUsd").textContent = `$${parseFloat(token.priceUsd).toFixed(6)}`;
         document.getElementById("priceSol").textContent = `${parseFloat(token.priceNative).toFixed(6)} SOL`;
         document.getElementById("volume").textContent = `$${Number(token.volume.h24).toLocaleString()}`;
         document.getElementById("liquidity").textContent = `$${Number(token.liquidity.usd).toLocaleString()}`;
-        document.getElementById("marketcap").textContent = token.fdv ? `$${Number(token.fdv).toLocaleString()}` : "N/A";
+        document.getElementById("marketcap").textContent = token.fdv ? `$${formatNumber(Number(token.fdv))}` : "N/A";
 
-        // Color-coded 24h change
         const changeElem = document.getElementById("change");
         const changeVal = parseFloat(token.priceChange.h24);
         changeElem.textContent = `${changeVal}%`;
         changeElem.style.color = changeVal >= 0 ? "green" : "red";
 
-        // Add realtime point
-        const now = new Date().toLocaleTimeString();
-        labels.push(now);
-        prices.push(parseFloat(token.priceUsd));
+        // === Market Cap Sparkline ===
+        marketCapHistory.push(Number(token.fdv));
+        if (marketCapHistory.length > 50) marketCapHistory.shift();
 
-        if (labels.length > 60) { // keep last 60 seconds
-          labels.shift();
-          prices.shift();
-        }
-
-        if (!chart) {
-          const ctx = document.getElementById('priceChart').getContext('2d');
-          chart = new Chart(ctx, {
-            type: 'line',
+        if (!marketCapChart) {
+          const ctx = document.getElementById("marketCapChart").getContext("2d");
+          marketCapChart = new Chart(ctx, {
+            type: "line",
             data: {
-              labels,
+              labels: marketCapHistory.map((_, i) => i),
               datasets: [{
-                label: 'Price (USD)',
-                data: prices,
-                borderColor: '#e63946',
-                backgroundColor: 'rgba(230,57,70,0.15)',
+                data: marketCapHistory,
+                borderColor: "#042a57",
+                backgroundColor: "rgba(4,42,87,0.1)",
                 fill: true,
                 tension: 0.3,
                 pointRadius: 0
               }]
             },
             options: {
+              animation: false,
+              responsive: true,
+              plugins: { legend: { display: false } },
+              scales: { x: { display: false }, y: { display: false } }
+            }
+          });
+        } else {
+          marketCapChart.data.labels = marketCapHistory.map((_, i) => i);
+          marketCapChart.data.datasets[0].data = marketCapHistory;
+          marketCapChart.update();
+        }
+
+        // === Candlestick Chart (Price) ===
+        const now = Date.now();
+        const price = parseFloat(token.priceUsd);
+
+        candleData.push({
+          x: now,
+          o: price * (0.999 + Math.random() * 0.002), // simulate small open
+          h: price * (1 + Math.random() * 0.001),
+          l: price * (1 - Math.random() * 0.001),
+          c: price
+        });
+
+        if (candleData.length > 60) candleData.shift();
+
+        if (!candleChart) {
+          const ctx = document.getElementById("priceChart").getContext("2d");
+          candleChart = new Chart(ctx, {
+            type: 'candlestick',
+            data: {
+              datasets: [{
+                label: "Price (USD)",
+                data: candleData,
+                borderColor: "#000"
+              }]
+            },
+            options: {
               responsive: true,
               animation: false,
+              plugins: { legend: { labels: { color: "#042a57" } } },
               scales: {
                 x: { ticks: { autoSkip: true, maxTicksLimit: 6 } },
                 y: { beginAtZero: false }
-              },
-              plugins: {
-                legend: { display: true, labels: { color: '#042a57' } }
               }
             }
           });
         } else {
-          chart.update();
+          candleChart.data.datasets[0].data = candleData;
+          candleChart.update();
         }
 
       } catch (err) {
