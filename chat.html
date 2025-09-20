@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>TitiBank Chat — image preview + caption</title>
+  <title>TitiBank Chat — preview + caption + reactions</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     body{font-family:Arial,Helvetica,sans-serif;background:#f4f4f9;margin:0;padding:18px}
@@ -21,7 +21,6 @@
     .time{font-weight:400;color:#666;font-size:12px;margin-left:8px}
     .chat-img{max-width:320px;border-radius:8px;display:block;margin-top:8px}
     .caption{color:#222;margin-top:6px;font-size:14px}
-    .sending{opacity:0.6;font-style:italic;color:#666}
     .controls{display:flex;gap:8px;margin-top:12px;align-items:center}
     #msgInput{flex:1;padding:10px;border-radius:8px;border:1px solid #ddd}
     #emojiPicker{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
@@ -31,7 +30,6 @@
     .reactions {margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
     .reaction-btn{padding:4px 8px;border-radius:14px;background:#f6f6f6;cursor:pointer; font-size:13px}
     .reaction-btn.you{background:#dfeffd}
-    .small-muted{font-size:12px;color:#666;margin-left:6px}
   </style>
 </head>
 <body>
@@ -97,8 +95,8 @@
     let canSend = false;
     let pendingImage = null;
 
-    // emoji picker
-    const emojis = ["😀","😁","😂","🤣","😊","😍","😎","😢","😡","👍","🙏","🔥","❤️"];
+    // emoji list (zyada emojis)
+    const emojis = ["😀","😁","😂","🤣","😊","😍","😎","😢","😡","👍","🙏","🔥","❤️","💔","🎉","👏","👌","😴","🤔","🙄","😱","🥶","🤯","🥳","🤗","🤩","😇","😈","💯","⚡","🌹"];
     emojis.forEach(e=>{
       const s = document.createElement('span');
       s.textContent = e;
@@ -152,7 +150,7 @@
       canSend=true;
     }
 
-    // send text or text+image
+    // send
     sendBtn.addEventListener('click', async ()=>{
       if(!canSend) return alert("Set username first");
       const text = msgInput.value.trim();
@@ -177,7 +175,7 @@
       }
 
       await push(ref(db,'messages'),payload);
-      msgInput.value='';
+      msgInput.value='';  // ✅ clear after send
     });
 
     // image selection -> preview only
@@ -194,7 +192,7 @@
       reader.readAsDataURL(file);
     });
 
-    // render messages
+    // render messages + reactions
     function appendMessage(msg){
       const row=document.createElement('div');
       row.className='msg-row';
@@ -213,8 +211,19 @@
       } else {
         bubble.innerHTML+=`<div>${msg.text}</div>`;
       }
-      row.appendChild(bubble);
 
+      // ✅ add reactions
+      const reactionsDiv=document.createElement('div');
+      reactionsDiv.className='reactions';
+      ["👍","😂","❤️","🔥","😢","😡"].forEach(r=>{
+        const btn=document.createElement('span');
+        btn.className='reaction-btn';
+        btn.textContent=r;
+        reactionsDiv.appendChild(btn);
+      });
+      bubble.appendChild(reactionsDiv);
+
+      row.appendChild(bubble);
       messagesEl.appendChild(row);
       messagesEl.scrollTop=messagesEl.scrollHeight;
     }
