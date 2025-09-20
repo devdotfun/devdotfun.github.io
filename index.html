@@ -87,7 +87,7 @@
     /* Hero */
     .hero{
       background: url('0090.png') no-repeat center/cover;
-      padding:110px 20px 60px;
+      padding:110px 20px;
       text-align:center;
       color: white;
       position:relative;
@@ -105,18 +105,7 @@
       max-width:980px;
       margin:auto;
     }
-    .hero h1{ 
-      margin:0; 
-      font-size:42px; 
-      font-weight:700;
-      overflow: hidden;
-      white-space: nowrap;
-      border-right: 3px solid #fff;
-      animation: typing 4s steps(30, end), blink .8s step-end infinite;
-    }
-    @keyframes typing { from { width: 0 } to { width: 100% } }
-    @keyframes blink { 50% { border-color: transparent } }
-
+    .hero h1{ margin:0; font-size:42px; font-weight:700; }
     .hero p{ margin-top:10px; font-size:18px; opacity:0.95; }
     .btn-primary{
       display:inline-block;
@@ -131,16 +120,20 @@
     }
     .btn-primary:hover{ filter:brightness(.95) }
 
-    /* Shiny border below hero */
+    /* Hero border line */
     .hero-border{
       height:4px;
-      background: linear-gradient(90deg, #f2a900, #e63946, #4facfe, #f2a900);
-      background-size: 300% 100%;
-      animation: shineborder 6s linear infinite;
+      background: linear-gradient(90deg,
+        rgba(242,169,0,0.1),
+        rgba(242,169,0,1),
+        rgba(242,169,0,0.1));
+      background-size:200% 100%;
+      animation: shineBorder 3s infinite linear;
+      box-shadow: 0 0 12px rgba(242,169,0,0.8);
     }
-    @keyframes shineborder {
-      0%{ background-position:0% 50% }
-      100%{ background-position:100% 50% }
+    @keyframes shineBorder {
+      0%{background-position:200% 0;}
+      100%{background-position:-200% 0;}
     }
 
     /* Page content */
@@ -156,11 +149,7 @@
       border-radius:10px;
       box-shadow: var(--shadow);
       transition: background 0.3s;
-      opacity:0;
-      transform: translateY(30px);
     }
-    .feature-row.visible{ opacity:1; transform:translateY(0); transition: all .6s ease; }
-
     .feature-row img{
       width:180px;
       height:180px;
@@ -185,7 +174,7 @@
     }
     .feature-content p{ margin:0 0 12px 0; color:inherit; }
 
-    /* Copy area */
+    /* Copyable highlight area */
     .copy-area{
       display:flex;
       gap:12px;
@@ -238,10 +227,14 @@
       border-radius:8px;
       font-weight:600;
       margin-top:10px;
-      transition: all 0.3s;
+      transition: color 0.3s;
     }
     .twitter-btn svg{ width:18px; height:18px; display:block; }
-    body.dark .twitter-btn{ background:#f2a900; color:#111; }
+
+    /* Dark mode mein text golden */
+    body.dark .twitter-btn{
+      color:#F2A900;
+    }
 
     /* Sections */
     .section{
@@ -251,11 +244,7 @@
       padding:48px 0;
       flex-wrap:wrap;
       transition: background 0.3s;
-      opacity:0;
-      transform: translateY(30px);
     }
-    .section.visible{ opacity:1; transform:translateY(0); transition: all .6s ease; }
-
     .section:nth-child(even){ background:var(--muted); padding-left:28px; padding-right:28px; }
     .section .s-img{ flex:0 0 48%; max-width:48%; }
     .section .s-img img{ width:100%; border-radius:10px; box-shadow: var(--shadow); }
@@ -273,22 +262,6 @@
       gap:12px;
     }
     body.dark footer{ background:#000; }
-
-    /* Back to top button */
-    #backToTop{
-      position:fixed;
-      bottom:20px;
-      right:20px;
-      background:var(--accent);
-      color:#fff;
-      border:none;
-      padding:10px 14px;
-      border-radius:50%;
-      font-size:18px;
-      cursor:pointer;
-      display:none;
-      box-shadow:0 4px 12px rgba(0,0,0,0.2);
-    }
 
     @media (max-width:880px){
       .feature-row{ flex-direction:column; text-align:center; }
@@ -312,6 +285,7 @@
       <a href="#">Home</a>
       <a href="realtime.html">RealTimeData</a>
       <a class="btn-primary" href="https://x.com/TheTitiBank" target="_blank" rel="noopener">Contact</a>
+      <!-- Dark mode button -->
       <button class="dark-toggle" id="darkToggle">🌙 Dark</button>
     </nav>
   </header>
@@ -324,6 +298,8 @@
       <a class="btn-primary" href="https://pump.fun/coin/F2167vaB18Pt9mJKMLAGUajd3sHeAgZbdvQyJyWXpump" target="_blank" rel="noopener">Buy</a>
     </div>
   </section>
+
+  <!-- Shiny Hero Border -->
   <div class="hero-border"></div>
 
   <!-- Content -->
@@ -331,12 +307,13 @@
 
     <!-- Feature Row -->
     <div style="margin-bottom:28px;">
-      <div class="feature-row reveal">
+      <div class="feature-row">
         <img src="zero.png" alt="Titcoin">
         <div class="feature-content">
           <h3>Titibank — Safest Meme Banking</h3>
           <p><strong>TitiBank</strong><br>
-            The original meme coin that mixes stability with playful community spirit.</p>
+            The original meme coin that mixes stability with playful community spirit. Built for secure trading,
+            strong community support, and a culture full of humor and momentum.</p>
 
           <div class="copy-area" aria-live="polite">
             <div id="copyText" class="copy-text">F2167vaB18Pt9mJKMLAGUajd3sHeAgZbdvQyJyWXpump</div>
@@ -344,34 +321,46 @@
             <div id="copySuccess" class="copy-success">Copied!</div>
           </div>
 
+          <!-- Twitter & Community buttons -->
           <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
-            <a class="twitter-btn" href="https://twitter.com/TheTitiBank" target="_blank" rel="noopener">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.633 7.997c.013.176..."/></svg>
-              Twitter
-            </a>
-            <a class="twitter-btn" href="https://twitter.com/i/communities/1898469706874728857" target="_blank" rel="noopener">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.633 7.997c.013.176..."/></svg>
-              Community
-            </a>
+            <a class="twitter-btn" href="https://twitter.com/TheTitiBank" target="_blank" rel="noopener">Twitter</a>
+            <a class="twitter-btn" href="https://twitter.com/i/communities/1898469706874728857" target="_blank" rel="noopener">Community</a>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Example Sections -->
-    <section class="section reveal">
+    <!-- Sections -->
+    <section class="section">
       <div class="s-img"><img src="2.png" alt="Savings & Accounts"></div>
       <div class="s-text">
         <h2>Tit Coin</h2>
-        <p>The original meme coin with stability + humor.</p>
+        <p>The original meme coin that mixes stability with playful community spirit. Built for secure trading,
+            strong community support, and a culture full of humor and momentum.</p>
       </div>
     </section>
 
-    <section class="section reveal">
+    <section class="section">
       <div class="s-img"><img src="milk.png" alt="Milkers Coin"></div>
       <div class="s-text">
         <h2>Mariah Milkers</h2>
-        <p>A symbol of liquidity and growth.</p>
+        <p>A symbol of liquidity and community growth. Milkers Coin delivers strong community vibes and steady momentum — perfect for long-term holders who love the meme scene.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="s-img"><img src="booba.png" alt="DoubleD Coin"></div>
+      <div class="s-text">
+        <h2>Booba</h2>
+        <p>Double the hype, double the rewards. Designed for traders who chase bigger moves and stronger meme momentum.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="s-img"><img src="boob.png" alt="Booba Token"></div>
+      <div class="s-text">
+        <h2>8008</h2>
+        <p>The ultimate meme treasure — built around community, creativity, and viral potential. Great for collectors and meme traders alike.</p>
       </div>
     </section>
 
@@ -382,14 +371,12 @@
     <div class="footer-left">
       <span style="opacity:0.9;">&copy; 2025 Titibank. All Rights Reserved.</span>
     </div>
+
     <div class="footer-right">
       <a class="twitter-btn" href="https://twitter.com/TheTitiBank" target="_blank" rel="noopener">Profile</a>
       <a class="twitter-btn" href="https://twitter.com/i/communities/1898469706874728857" target="_blank" rel="noopener">Community</a>
     </div>
   </footer>
-
-  <!-- Back to top -->
-  <button id="backToTop">↑</button>
 
   <script>
     // Copy functionality
@@ -403,38 +390,16 @@
       });
     });
 
-    // Dark mode toggle with memory
+    // Dark mode toggle
     const darkToggle = document.getElementById('darkToggle');
-    if(localStorage.getItem("theme")==="dark"){ document.body.classList.add('dark'); darkToggle.textContent="☀️ Light"; }
     darkToggle.addEventListener('click', ()=>{
       document.body.classList.toggle('dark');
       if(document.body.classList.contains('dark')){
         darkToggle.textContent = "☀️ Light";
-        localStorage.setItem("theme","dark");
       } else {
         darkToggle.textContent = "🌙 Dark";
-        localStorage.setItem("theme","light");
       }
     });
-
-    // Scroll reveal
-    const reveals=document.querySelectorAll('.reveal, .section, .feature-row');
-    const revealOnScroll=()=>{
-      reveals.forEach(el=>{
-        const rect=el.getBoundingClientRect();
-        if(rect.top<window.innerHeight-100){ el.classList.add('visible'); }
-      });
-    };
-    window.addEventListener('scroll',revealOnScroll);
-    window.addEventListener('load',revealOnScroll);
-
-    // Back to top
-    const backToTop=document.getElementById('backToTop');
-    window.addEventListener('scroll',()=>{
-      if(window.scrollY>200){ backToTop.style.display="block"; }
-      else{ backToTop.style.display="none"; }
-    });
-    backToTop.addEventListener('click',()=>window.scrollTo({top:0,behavior:"smooth"}));
   </script>
 </body>
 </html>
