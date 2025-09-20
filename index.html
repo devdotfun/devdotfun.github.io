@@ -10,6 +10,7 @@
       font-family: Arial, sans-serif;
       background-color: #f5f7fa;
       color: #333;
+      line-height: 1.6;
     }
     header {
       background: #004481;
@@ -32,10 +33,10 @@
       text-decoration: underline;
     }
     .hero {
-      background: url('https://picsum.photos/1600/500?blur') no-repeat center center/cover;
+      background: url('1.png') no-repeat center center/cover;
       color: white;
       text-align: center;
-      padding: 100px 20px;
+      padding: 120px 20px;
     }
     .hero h1 {
       font-size: 3em;
@@ -59,27 +60,27 @@
       background: #c91c30;
     }
     .section {
+      display: flex;
+      align-items: center;
       padding: 60px 20px;
       max-width: 1200px;
       margin: auto;
+      gap: 40px;
     }
-    .features {
-      display: flex;
-      gap: 30px;
-      flex-wrap: wrap;
-      justify-content: center;
+    .section:nth-child(even) {
+      flex-direction: row-reverse;
+      background: #eef3f7;
     }
-    .card {
-      background: white;
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      width: 300px;
-      text-align: center;
+    .section img {
+      width: 45%;
+      border-radius: 10px;
     }
-    .card h3 {
-      margin-top: 0;
+    .section-text {
+      flex: 1;
+    }
+    .section-text h2 {
       color: #004481;
+      margin-top: 0;
     }
     footer {
       background: #222;
@@ -92,9 +93,9 @@
 </head>
 <body>
 
+  <!-- Header -->
   <header>
-    <!-- Replace this with your Titibank logo -->
-    <img src="https://via.placeholder.com/150x40?text=Titibank+Logo" alt="Titibank Logo">
+    <img src="0.png" alt="Titibank Logo">
     <nav>
       <a href="#">Home</a>
       <a href="#">Accounts</a>
@@ -103,30 +104,55 @@
     </nav>
   </header>
 
+  <!-- Hero Section -->
   <div class="hero">
     <h1>Welcome to Titibank</h1>
     <p>Your trusted partner in modern banking</p>
     <button>Open an Account</button>
   </div>
 
+  <!-- Sections with Images + Text -->
   <div class="section">
-    <h2 style="text-align:center; color:#004481;">Our Services</h2>
-    <div class="features">
-      <div class="card">
-        <h3>💳 Digital Banking</h3>
-        <p>Manage your money anytime, anywhere with Titibank’s secure online banking platform.</p>
-      </div>
-      <div class="card">
-        <h3>🏦 Savings & Accounts</h3>
-        <p>Choose from a variety of savings and checking accounts designed for your lifestyle.</p>
-      </div>
-      <div class="card">
-        <h3>💰 Loans & Credit</h3>
-        <p>Fast approvals, flexible repayment plans, and competitive interest rates.</p>
-      </div>
+    <img src="2.png" alt="Digital Banking">
+    <div class="section-text">
+      <h2>💻 Digital Banking</h2>
+      <p>Manage your money anytime, anywhere with Titibank’s secure online banking platform. Fast, safe, and user-friendly.</p>
     </div>
   </div>
 
+  <div class="section">
+    <img src="3.png" alt="Savings & Accounts">
+    <div class="section-text">
+      <h2>🏦 Savings & Accounts</h2>
+      <p>Choose from a wide variety of savings and checking accounts, designed to support your lifestyle and future goals.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <img src="4.png" alt="Loans & Credit">
+    <div class="section-text">
+      <h2>💰 Loans & Credit</h2>
+      <p>Enjoy fast approvals, flexible repayment plans, and competitive interest rates tailored to your needs.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <img src="5.png" alt="Business Solutions">
+    <div class="section-text">
+      <h2>📈 Business Solutions</h2>
+      <p>From small businesses to large enterprises, Titibank provides innovative financial solutions to help you grow.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <img src="6.png" alt="Global Reach">
+    <div class="section-text">
+      <h2>🌍 Global Reach</h2>
+      <p>Bank with confidence wherever you are. Titibank connects you to global financial opportunities.</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
   <footer>
     <p>&copy; 2025 Titibank. All Rights Reserved.</p>
   </footer>
