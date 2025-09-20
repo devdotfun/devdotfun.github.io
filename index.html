@@ -7,7 +7,7 @@
   <style>
     :root{
       --bank-blue:#042a57;
-      --btc-yellow:#F2A900; /* bitcoin-style yellow */
+      --btc-yellow:#F2A900;
       --accent:#e63946;
       --muted:#eef3f7;
       --card-bg:#fff;
@@ -141,6 +141,7 @@
       gap:12px;
       align-items:center;
       margin-top:6px;
+      flex-wrap:wrap;
     }
     .copy-text{
       background: linear-gradient(180deg, #fff 0%, #fbfbfb 100%);
@@ -170,6 +171,21 @@
       display:none;
     }
 
+    /* Twitter buttons */
+    .twitter-btn{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      text-decoration:none;
+      color:#fff;
+      background:var(--bank-blue);
+      padding:8px 12px;
+      border-radius:8px;
+      font-weight:600;
+      margin-top:10px;
+    }
+    .twitter-btn svg{ width:18px; height:18px; display:block; }
+
     /* Sections */
     .section{
       display:flex;
@@ -195,19 +211,6 @@
       gap:12px;
     }
     .footer-left, .footer-right{ display:flex; align-items:center; gap:12px; }
-    .twitter-btn{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      text-decoration:none;
-      color:#fff;
-      background:rgba(255,255,255,0.05);
-      padding:8px 12px;
-      border-radius:8px;
-      font-weight:600;
-      border:1px solid rgba(255,255,255,0.04);
-    }
-    .twitter-btn svg{ width:18px; height:18px; display:block; }
 
     @media (max-width:880px){
       .feature-row{ flex-direction:column; text-align:center; }
@@ -230,7 +233,7 @@
     <nav>
       <a href="#">Home</a>
       <a href="realtime.html">RealTimeData</a>
-     <a href="about.html">About</a>
+      <a href="about.html">About</a>
       <a href="#">Contact</a>
     </nav>
   </header>
@@ -244,38 +247,39 @@
     </div>
   </section>
 
- <!-- Feature Row -->
-<div style="margin-bottom:28px;">
-  <div class="feature-row">
-    <img src="zero.png" alt="Titcoin">
-    <div class="feature-content">
-      <h3>Titibank — Safest Meme Banking</h3>
-      <p><strong>TitiBank</strong><br>
-        The original meme coin that mixes stability with playful community spirit. Built for secure trading,
-        strong community support, and a culture full of humor and momentum.</p>
+  <!-- Content -->
+  <main class="container" role="main">
 
-      <div class="copy-area" aria-live="polite">
-        <div id="copyText" class="copy-text">F2167vaB18Pt9mJKMLAGUajd3sHeAgZbdvQyJyWXpump</div>
-        <button id="copyBtn" class="copy-btn" title="Copy text">Copy</button>
-        <div id="copySuccess" class="copy-success">Copied!</div>
+    <!-- Feature Row -->
+    <div style="margin-bottom:28px;">
+      <div class="feature-row">
+        <img src="zero.png" alt="Titcoin">
+        <div class="feature-content">
+          <h3>Titibank — Safest Meme Banking</h3>
+          <p><strong>TitiBank</strong><br>
+            The original meme coin that mixes stability with playful community spirit. Built for secure trading,
+            strong community support, and a culture full of humor and momentum.</p>
+
+          <div class="copy-area" aria-live="polite">
+            <div id="copyText" class="copy-text">F2167vaB18Pt9mJKMLAGUajd3sHeAgZbdvQyJyWXpump</div>
+            <button id="copyBtn" class="copy-btn" title="Copy text">Copy</button>
+            <div id="copySuccess" class="copy-success">Copied!</div>
+          </div>
+
+          <!-- Twitter & Community buttons under copy -->
+          <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a class="twitter-btn" href="https://twitter.com/TheTitiBank" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.633 7.997c.013.176.013.353.013.529 0 5.389-4.101 11.611-11.611 11.611A11.56 11.56 0 0 1 1 18.02a8.112 8.112 0 0 0 .95.05c1.83 0 3.515-.624 4.853-1.675a4.1 4.1 0 0 1-3.826-2.842c.252.038.504.063.77.063.37 0 .74-.05 1.083-.15A4.099 4.099 0 0 1 4.1 9.597v-.05c.565.315 1.214.504 1.904.526a4.1 4.1 0 0 1 1.128-2.453 4.11 4.11 0 0 1 3.07 1.132 8.236 8.236 0 0 0 5.985-3.03 4.093 4.093 0 0 1-1.803 2.257 8.21 8.21 0 0 0 2.356-.62 8.448 8.448 0 0 1-2.06 2.13z"/></svg>
+              Twitter
+            </a>
+            <a class="twitter-btn" href="https://twitter.com/i/communities/1898469706874728857" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.633 7.997c.013.176.013.353.013.529 0 5.389-4.101 11.611-11.611 11.611A11.56 11.56 0 0 1 1 18.02a8.112 8.112 0 0 0 .95.05c1.83 0 3.515-.624 4.853-1.675a4.1 4.1 0 0 1-3.826-2.842c.252.038.504.063.77.063.37 0 .74-.05 1.083-.15A4.099 4.099 0 0 1 4.1 9.597v-.05c.565.315 1.214.504 1.904.526a4.1 4.1 0 0 1 1.128-2.453 4.11 4.11 0 0 1 3.07 1.132 8.236 8.236 0 0 0 5.985-3.03 4.093 4.093 0 0 1-1.803 2.257 8.21 8.21 0 0 0 2.356-.62 8.448 8.448 0 0 1-2.06 2.13z"/></svg>
+              Community
+            </a>
+          </div>
+        </div>
       </div>
-
-      <!-- Social buttons added below copy -->
-      <div style="margin-top:16px; display:flex; gap:12px; flex-wrap:wrap;">
-        <a class="twitter-btn" href="https://twitter.com/TheTitiBank" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.633 7.997c.013.176.013.353.013.529 0 5.389-4.101 11.611-11.611 11.611A11.56 11.56 0 0 1 1 18.02a8.112 8.112 0 0 0 .95.05c1.83 0 3.515-.624 4.853-1.675a4.1 4.1 0 0 1-3.826-2.842c.252.038.504.063.77.063.37 0 .74-.05 1.083-.15A4.099 4.099 0 0 1 4.1 9.597v-.05c.565.315 1.214.504 1.904.526a4.1 4.1 0 0 1 1.128-2.453 4.11 4.11 0 0 1 3.07 1.132 8.236 8.236 0 0 0 5.985-3.03 4.093 4.093 0 0 1-1.803 2.257 8.21 8.21 0 0 0 2.356-.62 8.448 8.448 0 0 1-2.06 2.13z"/></svg>
-          Twitter
-        </a>
-
-        <a class="twitter-btn" href="https://twitter.com/i/communities/1898469706874728857" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.633 7.997c.013.176.013.353.013.529 0 5.389-4.101 11.611-11.611 11.611A11.56 11.56 0 0 1 1 18.02a8.112 8.112 0 0 0 .95.05c1.83 0 3.515-.624 4.853-1.675a4.1 4.1 0 0 1-3.826-2.842c.252.038.504.063.77.063.37 0 .74-.05 1.083-.15A4.099 4.099 0 0 1 4.1 9.597v-.05c.565.315 1.214.504 1.904.526a4.1 4.1 0 0 1 1.128-2.453 4.11 4.11 0 0 1 3.07 1.132 8.236 8.236 0 0 0 5.985-3.03 4.093 4.093 0 0 1-1.803 2.257 8.21 8.21 0 0 0 2.356-.62 8.448 8.448 0 0 1-2.06 2.13z"/></svg>
-          Community
-        </a>
-      </div>
-      <!-- End social buttons -->
     </div>
-  </div>
-</div>
 
     <!-- Other sections -->
     <section class="section">
@@ -300,7 +304,6 @@
       <div class="s-text">
         <h2>DoubleD Coin</h2>
         <p>Double the hype, double the rewards. Designed for traders who chase bigger moves and stronger meme momentum.</p>
-        
       </div>
     </section>
 
@@ -309,7 +312,6 @@
       <div class="s-text">
         <h2>Booba Token</h2>
         <p>The ultimate meme treasure — built around community, creativity, and viral potential. Great for collectors and meme traders alike.</p>
-       
       </div>
     </section>
 
@@ -331,36 +333,26 @@
 
     <div class="footer-right">
       <a class="twitter-btn" href="https://twitter.com/TheTitiBank" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.633 7.997c.013.176.013.353.013.529 0 5.389-4.101 11.611-11.611 11.611A11.56 11.56 0 0 1 1 18.02a8.112 8.112 0 0 0 .95.05c1.83 0 3.515-.624 4.853-1.675a4.1 4.1 0 0 1-3.826-2.842c.252.038.504.063.77.063.37 0 .74-.05 1.083-.15A4.099 4.099 0 0 1 4.1 9.597v-.05c.565.315 1.214.504 1.904.526a4.1 4.1 0 0 1 1.128-2.453 4.11 4.11 0 0 1 3.07 1.132 8.236 8.236 0 0 0 5.985-3.03 4.093 4.093 0 0 1-1.803 2.257 8.21 8.21 0 0 0 2.356-.62 8.448 8.448 0 0 1-2.06 2.13z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.633 7.997c.013.176.013.353.013.529 0 5.389-4.101 11.611-11.611 11.611A11.56 11.56 0 0 1 1 18.02a8.112 8.112 0 0 0 .95.05c1.83 0 3.515-.624 4.853-1.675a4.1 4.1 0 0 1-3.826-2.842c.252.038.504.063.77.063.37 0 .74-.05 1.083-.15A4.099 4.099 0 0 1 4.1 9.597v-.05c.565.315 1.214.504 1.904.526a4.1 4.1 0 0 1 1.128-2.453 4.11 4.11 0 0 1 3.07 1.132 8.236 8.236 0 0 0 5.985-3.03 4.093 4.093 0 0 1-1.803 2.257 8.21 8.21 0 0 0 2.356-.62 8.448 8.448 0 0 1-2.06 2.13z"/></svg>
         Profile
       </a>
-
       <a class="twitter-btn" href="https://twitter.com/i/communities/1898469706874728857" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.633 7.997c.013.176.013.353.013.529 0 5.389-4.101 11.611-11.611 11.611A11.56 11.56 0 0 1 1 18.02a8.112 8.112 0 0 0 .95.05c1.83 0 3.515-.624 4.853-1.675a4.1 4.1 0 0 1-3.826-2.842c.252.038.504.063.77.063.37 0 .74-.05 1.083-.15A4.099 4.099 0 0 1 4.1 9.597v-.05c.565.315 1.214.504 1.904.526a4.1 4.1 0 0 1 1.128-2.453 4.11 4.11 0 0 1 3.07 1.132 8.236 8.236 0 0 0 5.985-3.03 4.093 4.093 0 0 1-1.803 2.257 8.21 8.21 0 0 0 2.356-.62 8.448 8.448 0 0 1-2.06 2.13z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.633 7.997c.013.176.013.353.013.529 0 5.389-4.101 11.611-11.611 11.611A11.56 11.56 0 0 1 1 18.02a8.112 8.112 0 0 0 .95.05c1.83 0 3.515-.624 4.853-1.675a4.1 4.1 0 0 1-3.826-2.842c.252.038.504.063.77.063.37 0 .74-.05 1.083-.15A4.099 4.099 0 0 1 4.1 9.597v-.05c.565.315 1.214.504 1.904.526a4.1 4.1 0 0 1 1.128-2.453 4.11 4.11 0 0 1 3.07 1.132 8.236 8.236 0 0 0 5.985-3.03 4.093 4.093 0 0 1-1.803 2.257 8.21 8.21 0 0 0 2.356-.62 8.448 8.448 0 0 1-2.06 2.13z"/></svg>
         Community
       </a>
     </div>
   </footer>
 
   <script>
+    // Copy functionality
     const copyBtn = document.getElementById('copyBtn');
-    const copyTextEl = document.getElementById('copyText');
+    const copyText = document.getElementById('copyText');
     const copySuccess = document.getElementById('copySuccess');
-
-    copyBtn.addEventListener('click', async () => {
-      const text = copyTextEl.textContent.trim();
-      try {
-        await navigator.clipboard.writeText(text);
-        copySuccess.style.display = 'inline';
-        setTimeout(()=> copySuccess.style.display = 'none', 1600);
-      } catch (e) {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        try { document.execCommand('copy'); copySuccess.style.display = 'inline'; setTimeout(()=> copySuccess.style.display = 'none', 1600); } catch(err){ alert('Copy failed — select and copy manually.'); }
-        ta.remove();
-      }
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(copyText.textContent).then(() => {
+        copySuccess.style.display='inline';
+        setTimeout(()=>copySuccess.style.display='none', 2000);
+      });
     });
   </script>
 </body>
