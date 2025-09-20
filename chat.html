@@ -60,7 +60,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded, set, child, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+    import { getDatabase, ref, push, onChildAdded, onChildChanged, set, child, get, update } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
     const firebaseConfig = {
@@ -95,7 +95,7 @@
     let canSend = false;
     let pendingImage = null;
 
-    // emoji list (zyada emojis)
+    // emoji list
     const emojis = ["😀","😁","😂","🤣","😊","😍","😎","😢","😡","👍","🙏","🔥","❤️","💔","🎉","👏","👌","😴","🤔","🙄","😱","🥶","🤯","🥳","🤗","🤩","😇","😈","💯","⚡","🌹"];
     emojis.forEach(e=>{
       const s = document.createElement('span');
@@ -108,7 +108,6 @@
       emojiPicker.style.flexWrap='wrap';
     });
 
-    // avatar generator
     function avatarFor(name){ return `https://avatars.dicebear.com/api/identicon/${encodeURIComponent(name)}.svg`; }
 
     signInAnonymously(auth);
@@ -125,7 +124,8 @@
         openChat();
       }
 
-      onChildAdded(ref(db,'messages'), (snap)=> appendMessage(snap.val()));
+      onChildAdded(ref(db,'messages'), (snap)=> renderMessage(snap.key, snap.val()));
+      onChildChanged(ref(db,'messages'), (snap)=> updateMessage(snap.key, snap.val()));
     });
 
     saveUsernameBtn.addEventListener('click', async ()=>{
@@ -175,7 +175,7 @@
       }
 
       await push(ref(db,'messages'),payload);
-      msgInput.value='';  // ✅ clear after send
+      msgInput.value='';  
     });
 
     // image selection -> preview only
@@ -192,10 +192,22 @@
       reader.readAsDataURL(file);
     });
 
-    // render messages + reactions
-    function appendMessage(msg){
+    // toggle reaction
+    async function toggleReaction(msgId, emoji, prev){
+      if(!currentUser) return;
+      const reactRef = ref(db,`messages/${msgId}/reactions/${currentUser.uid}`);
+      if(prev === emoji){
+        await set(reactRef, null);
+      } else {
+        await set(reactRef, emoji);
+      }
+    }
+
+    // render message
+    function renderMessage(id,msg){
       const row=document.createElement('div');
       row.className='msg-row';
+      row.id='msg-'+id;
 
       const avatar=document.createElement('img');
       avatar.className='avatar';
@@ -212,20 +224,50 @@
         bubble.innerHTML+=`<div>${msg.text}</div>`;
       }
 
-      // ✅ add reactions
       const reactionsDiv=document.createElement('div');
       reactionsDiv.className='reactions';
-      ["👍","😂","❤️","🔥","😢","😡"].forEach(r=>{
-        const btn=document.createElement('span');
-        btn.className='reaction-btn';
-        btn.textContent=r;
-        reactionsDiv.appendChild(btn);
-      });
       bubble.appendChild(reactionsDiv);
 
       row.appendChild(bubble);
       messagesEl.appendChild(row);
       messagesEl.scrollTop=messagesEl.scrollHeight;
+
+      renderReactions(id,msg);
+    }
+
+    // update msg
+    function updateMessage(id,msg){
+      const row=document.getElementById('msg-'+id);
+      if(!row) return renderMessage(id,msg);
+      renderReactions(id,msg);
+    }
+
+    // render reactions counts
+    function renderReactions(id,msg){
+      const row=document.getElementById('msg-'+id);
+      if(!row) return;
+      const reactionsDiv=row.querySelector('.reactions');
+      reactionsDiv.innerHTML='';
+
+      const reactions=msg.reactions||{};
+      const counts={};
+      let myReaction=null;
+
+      for(const uid in reactions){
+        const em=reactions[uid];
+        if(!em) continue;
+        counts[em]=(counts[em]||0)+1;
+        if(uid===currentUser?.uid) myReaction=em;
+      }
+
+      ["👍","😂","❤️","🔥","😢","😡"].forEach(em=>{
+        const btn=document.createElement('span');
+        btn.className='reaction-btn';
+        if(myReaction===em) btn.classList.add('you');
+        btn.textContent=counts[em]?`${em} ${counts[em]}`:em;
+        btn.onclick=()=>toggleReaction(id,em,myReaction);
+        reactionsDiv.appendChild(btn);
+      });
     }
   </script>
 </body>
