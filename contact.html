@@ -1,62 +1,67 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <title>TitiBank Chat — Secure Image Upload</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8">
+  <title>Live Chat</title>
   <style>
-    body{font-family:Arial,Helvetica,sans-serif;background:#f4f4f9;margin:0;padding:20px}
-    .wrap{max-width:820px;margin:18px auto;background:#fff;padding:18px;border-radius:10px;box-shadow:0 8px 26px rgba(10,20,30,0.06)}
-    #messages{height:420px;overflow:auto;border-radius:8px;border:1px solid #e6e9ef;padding:12px;background:#fafbfd}
-    .msg{margin-bottom:12px;padding:10px;border-radius:10px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.03)}
-    .meta{font-weight:700;color:#042a57}
-    .time{font-weight:400;font-size:12px;color:#666;margin-left:8px}
-    #controls{display:flex;gap:8px;margin-top:12px;align-items:center}
-    #msgInput{flex:1;padding:10px;border-radius:8px;border:1px solid #ddd}
-    button{padding:9px 12px;border-radius:8px;border:0;background:#e63946;color:#fff;font-weight:700;cursor:pointer}
-    button.secondary{background:#042a57}
-    .chat-img{max-width:320px;border-radius:8px;margin-top:8px;display:block}
-    #emojiPicker{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
-    #emojiPicker span{cursor:pointer;padding:6px;border-radius:6px;background:#f0f0f0}
-    #status{margin-bottom:8px;color:#333}
+    body{font-family:Arial,sans-serif; background:#f4f4f9; margin:0; padding:20px;}
+    .wrap{max-width:700px; margin:auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1);}
+    #messages{height:400px; overflow-y:auto; border:1px solid #ddd; padding:10px; margin-bottom:10px;}
+    .msg{margin-bottom:10px; padding:6px 10px; background:#f9f9f9; border-radius:6px; position:relative;}
+    .meta{font-weight:bold; font-size:13px;}
+    .time{font-size:11px; color:#666; margin-left:5px;}
+    #controls{display:flex; gap:5px; margin-top:10px;}
+    #msgInput{flex:1; padding:8px;}
+    button{padding:8px 12px; cursor:pointer;}
+    #emojiPicker{position:absolute; bottom:60px; background:#fff; border:1px solid #ccc; padding:5px; display:none; flex-wrap:wrap; max-width:240px;}
+    #emojiPicker span{cursor:pointer; padding:5px; font-size:20px;}
+    img.chat-img{max-width:200px; border-radius:6px; margin-top:5px;}
+    #imgPreview{display:none; margin-bottom:8px;}
+    #imgPreview img{max-width:150px; border-radius:6px;}
+    .loader{font-size:12px; color:#666; font-style:italic;}
+    .reactions{margin-top:4px;}
+    .reactions span{cursor:pointer; margin-right:4px;}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h2>💬 TitiBank Chat</h2>
+    <h2>💬 Live Chat</h2>
     <div id="status">Connecting...</div>
 
     <div id="usernameArea">
-      <input id="usernameInput" placeholder="Enter username (required to send)" />
-      <button id="saveUsernameBtn" class="secondary">Save</button>
+      <input id="usernameInput" placeholder="Enter username"/>
+      <button id="saveUsernameBtn">Save</button>
       <button id="readOnlyBtn">Read Only</button>
     </div>
 
-    <div id="messages" aria-live="polite"></div>
+    <div id="messages"></div>
 
-    <div id="controls" style="display:none">
-      <input id="msgInput" placeholder="Type a message" />
-      <button id="emojiToggle">😀</button>
-      <input id="fileInput" type="file" accept="image/*" style="display:none" />
+    <div id="imgPreview"></div>
+
+    <div id="controls" style="display:none;">
+      <input id="msgInput" placeholder="Type a message"/>
+      <button id="emojiBtn">😀</button>
+      <input type="file" id="fileInput" accept="image/*" style="display:none;"/>
       <button id="imgBtn">📷</button>
       <button id="sendBtn">Send</button>
     </div>
 
-    <div id="emojiPicker" style="display:none"></div>
+    <div id="emojiPicker"></div>
   </div>
 
+  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getDatabase, ref, push, onChildAdded, set, child, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
-    // ====== Replace these Firebase config values if different ======
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAqcF-u7zaTc0CwgXORBNi0ehhYYMG5a6g",
       authDomain: "titibankpumpfun.firebaseapp.com",
       databaseURL: "https://titibankpumpfun-default-rtdb.firebaseio.com",
       projectId: "titibankpumpfun",
-      storageBucket: "",
+      storageBucket: "titibankpumpfun.appspot.com",
       messagingSenderId: "713215451720",
       appId: "1:713215451720:web:a9ead74e25448f431fee7d"
     };
@@ -65,7 +70,6 @@
     const db = getDatabase(app);
     const auth = getAuth(app);
 
-    // DOM
     const statusEl = document.getElementById('status');
     const messagesEl = document.getElementById('messages');
     const msgInput = document.getElementById('msgInput');
@@ -74,184 +78,132 @@
     const usernameInput = document.getElementById('usernameInput');
     const saveUsernameBtn = document.getElementById('saveUsernameBtn');
     const readOnlyBtn = document.getElementById('readOnlyBtn');
-    const fileInput = document.getElementById('fileInput');
-    const imgBtn = document.getElementById('imgBtn');
-    const emojiToggle = document.getElementById('emojiToggle');
+    const usernameArea = document.getElementById('usernameArea');
+    const emojiBtn = document.getElementById('emojiBtn');
     const emojiPicker = document.getElementById('emojiPicker');
+    const imgBtn = document.getElementById('imgBtn');
+    const fileInput = document.getElementById('fileInput');
+    const imgPreview = document.getElementById('imgPreview');
 
     let currentUser = null;
     let canSend = false;
+    let pendingImage = null;
 
-    // Emoji list
-    const emojis = ["😀","😁","😂","🤣","😊","😍","😎","😢","😡","👍","🙏","🔥","❤️","🤝","🎉"];
-    emojis.forEach(e => {
-      const s = document.createElement('span');
-      s.textContent = e;
-      s.title = e;
-      s.addEventListener('click', ()=> {
-        msgInput.value += e;
-        msgInput.focus();
-        emojiPicker.style.display = 'none';
-      });
-      emojiPicker.appendChild(s);
-    });
-    emojiToggle.addEventListener('click', ()=> {
-      emojiPicker.style.display = emojiPicker.style.display === 'flex' ? 'none' : 'flex';
-    });
+    signInAnonymously(auth);
 
-    // Firebase anonymous auth
-    signInAnonymously(auth).catch(err => {
-      console.error("Auth error:", err);
-      statusEl.textContent = "Auth error: " + err.message;
-    });
-
-    onAuthStateChanged(auth, async (user) => {
+    onAuthStateChanged(auth, async (user)=>{
       if(!user) return;
       currentUser = { uid: user.uid, username: null };
       statusEl.textContent = "Connected";
 
-      // check stored username in DB
       const snap = await get(child(ref(db), 'users/' + user.uid));
       if(snap.exists()){
         currentUser.username = snap.val().username;
-        openChat();
+        enableChat();
       }
 
-      // realtime messages listener
-      onChildAdded(ref(db, 'messages'), (snap) => {
-        appendMessage(snap.val());
+      onChildAdded(ref(db, 'messages'), (snap)=>{
+        appendMessage(snap.key, snap.val());
       });
     });
 
-    function openChat(){
-      document.getElementById('usernameArea').style.display = 'none';
-      controls.style.display = 'flex';
+    function enableChat(){
+      usernameArea.style.display = "none";
+      controls.style.display = "flex";
       canSend = true;
     }
 
-    saveUsernameBtn.addEventListener('click', async ()=> {
+    saveUsernameBtn.addEventListener('click', async ()=>{
       const name = usernameInput.value.trim();
-      if(!name || name.length < 2) { alert("Enter a username (min 2 chars)"); return; }
+      if(!name){ alert("Enter a username"); return; }
       await set(ref(db, 'users/' + currentUser.uid), { username: name });
       currentUser.username = name;
-      openChat();
+      enableChat();
     });
 
-    readOnlyBtn.addEventListener('click', ()=> {
-      document.getElementById('usernameArea').style.display = 'none';
-      controls.style.display = 'none';
+    readOnlyBtn.addEventListener('click', ()=>{
+      usernameArea.style.display = "none";
+      controls.style.display = "none";
       canSend = false;
     });
 
-    sendBtn.addEventListener('click', sendMessage);
-    msgInput.addEventListener('keydown', e => { if(e.key === 'Enter') sendMessage(); });
-
-    async function sendMessage(){
-      if(!canSend){ alert("Set a username to send messages"); return; }
+    sendBtn.addEventListener('click', async ()=>{
+      if(!canSend) return alert("Set username first");
       const text = msgInput.value.trim();
-      if(!text) return;
-      await push(ref(db, 'messages'), {
+      if(!text && !pendingImage) return;
+
+      const tempId = "temp-" + Date.now();
+      appendMessage(tempId, { username: currentUser.username, text, ts: Date.now(), type: pendingImage?"image":"text", temp:true });
+
+      let payload = {
         uid: currentUser.uid,
         username: currentUser.username,
-        text,
-        ts: Date.now(),
-        type: "text"
-      });
-      msgInput.value = '';
-    }
+        ts: Date.now()
+      };
 
-    function appendMessage(msg){
-      const div = document.createElement('div');
-      div.className = 'msg';
-      const t = new Date(msg.ts || Date.now()).toLocaleTimeString();
-      const meta = `<div class="meta">${escapeHtml(msg.username || 'Unknown')} <span class="time">${t}</span></div>`;
-      div.innerHTML = meta;
-      if(msg.type === 'image'){
-        const img = document.createElement('img');
-        img.className = 'chat-img';
-        img.src = msg.text;
-        img.alt = 'image';
-        div.appendChild(img);
+      if(pendingImage){
+        payload.type="image";
+        payload.text=pendingImage;
+        if(text) payload.caption=text;
+        pendingImage=null;
+        imgPreview.style.display="none";
       } else {
-        const p = document.createElement('div');
-        p.textContent = msg.text;
-        div.appendChild(p);
+        payload.type="text";
+        payload.text=text;
       }
-      messagesEl.appendChild(div);
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
 
-    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+      await push(ref(db,'messages'),payload);
 
-    // ===== Image upload flow using secure backend auth =====
-    imgBtn.addEventListener('click', ()=> fileInput.click());
-
-    fileInput.addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if(!file) return alert("Select an image");
-      if(!canSend) return alert("Set a username to upload images");
-
-      // 1) Get auth tokens from backend function
-      statusEl.textContent = "Preparing upload...";
-      try {
-        // <<< IMPORTANT: replace this URL with your deployed Cloud Function URL (see steps) >>>
-        const AUTH_ENDPOINT_BASE = "REPLACE_WITH_YOUR_CLOUD_FUNCTION_BASE_URL"; 
-        // then the frontend will call: `${AUTH_ENDPOINT_BASE}/get-imagekit-auth`
-        const r = await fetch(`${AUTH_ENDPOINT_BASE}/get-imagekit-auth`);
-        if(!r.ok) throw new Error("Auth endpoint error: "+r.status);
-        const authJson = await r.json();
-        const { token, expire, signature, publicKey, folder } = authJson;
-        if(!token || !signature) throw new Error("Invalid auth response");
-
-        // 2) upload to ImageKit
-        const form = new FormData();
-        form.append("file", file);
-        form.append("fileName", file.name);
-        form.append("publicKey", publicKey);
-        form.append("token", token);
-        form.append("expire", expire);
-        form.append("signature", signature);
-        if(folder) form.append("folder", folder);
-
-        statusEl.textContent = "Uploading image...";
-        const uploadRes = await fetch("https://upload.imagekit.io/api/v1/files/upload", {
-          method: "POST",
-          body: form
-        });
-
-        const uploadJson = await uploadRes.json();
-        if(!uploadRes.ok){
-          console.error("Upload failed:", uploadJson);
-          alert("Image upload failed: " + (uploadJson.message || JSON.stringify(uploadJson)));
-          statusEl.textContent = "Connected";
-          return;
-        }
-
-        const imageUrl = uploadJson.url || uploadJson.filePath || null;
-        if(!imageUrl){
-          alert("Upload succeeded but no URL returned");
-          statusEl.textContent = "Connected";
-          return;
-        }
-
-        // 3) Push image message to Firebase
-        await push(ref(db, 'messages'), {
-          uid: currentUser.uid,
-          username: currentUser.username,
-          text: imageUrl,
-          ts: Date.now(),
-          type: "image"
-        });
-
-        statusEl.textContent = "Connected";
-        fileInput.value = "";
-      } catch (err) {
-        console.error("Upload flow error:", err);
-        alert("Image upload failed: " + err.message);
-        statusEl.textContent = "Connected";
-      }
+      msgInput.value='';
+      fileInput.value='';
     });
 
+    function appendMessage(id,msg){
+      const div = document.createElement('div');
+      div.className='msg';
+      div.id=id;
+
+      const t=new Date(msg.ts).toLocaleTimeString();
+      div.innerHTML=`<div class="meta">${msg.username||"??"} <span class="time">${t}</span></div>`;
+
+      if(msg.type==="image"){
+        div.innerHTML+=`<img src="${msg.text}" class="chat-img"/>`;
+        if(msg.caption) div.innerHTML+=`<div>${msg.caption}</div>`;
+      } else {
+        div.innerHTML+=`<div>${msg.text}</div>`;
+      }
+
+      if(msg.temp){
+        div.innerHTML+=`<div class="loader">Sending...</div>`;
+      } else {
+        div.innerHTML+=`<div class="reactions">😀 😍 😂 👍 👎 🔥 ❤️</div>`;
+      }
+
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop=messagesEl.scrollHeight;
+    }
+
+    // Emoji picker
+    const emojis=["😀","😁","😂","🤣","😊","😍","😎","😢","😡","👍","🙏","🔥","❤️","🎉","🥳","🙌","🤔","😴","🤯","👀"];
+    emojis.forEach(e=>{
+      const span=document.createElement('span');
+      span.textContent=e;
+      span.onclick=()=>{ msgInput.value+=e; emojiPicker.style.display="none"; };
+      emojiPicker.appendChild(span);
+    });
+    emojiBtn.addEventListener('click', ()=>{ emojiPicker.style.display=emojiPicker.style.display==="flex"?"none":"flex"; });
+
+    // Image select + preview
+    imgBtn.addEventListener('click', ()=>fileInput.click());
+    fileInput.addEventListener('change', e=>{
+      const file=e.target.files[0];
+      if(file){
+        const url=URL.createObjectURL(file);
+        pendingImage=url;
+        imgPreview.innerHTML=`<img src="${url}"/>`;
+        imgPreview.style.display='block';
+      }
+    });
   </script>
 </body>
 </html>
