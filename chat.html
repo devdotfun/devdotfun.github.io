@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>TitiBank-LiveChat</title>
+  <title>TitiBank-Live Chat</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     body{font-family:Arial,Helvetica,sans-serif;background:#f4f4f9;margin:0;padding:18px}
@@ -95,8 +95,8 @@
     let canSend = false;
     let pendingImage = null;
 
-    // ✅ big emoji list
-    const emojis = ["😀","😁","😂","🤣","😊","😍","😎","😢","😡","👍","🙏","🔥","❤️","💔","🎉","👏","👌","😴","🤔","🙄","😱","🥶","🤯","🥳","🤗","🤩","😇","😈","💯","⚡","🌹","🍕","🍔","🍟","🥤","🎂","🍎","🍓","🍇","🥭","🍉","⚽","🏀","🏆","🎧","🎮","🚗","✈️","🏝️"];
+    // emojis
+    const emojis = ["😀","😁","😂","🤣","😊","😍","😎","😢","😡","👍","🙏","🔥","❤️","💔","🎉","👏","👌","😴","🤔","🙄","😱","🥶","🤯","🥳","🤗","🤩","😇","😈","💯","⚡","🌹"];
     emojis.forEach(e=>{
       const s = document.createElement('span');
       s.textContent = e;
@@ -150,8 +150,8 @@
       canSend=true;
     }
 
-    // ✅ send
-    sendBtn.addEventListener('click', async ()=>{
+    // send function
+    async function sendMessage(){
       if(!canSend) return alert("Set username first");
       const text = msgInput.value.trim();
       if(!text && !pendingImage) return;
@@ -176,15 +176,22 @@
 
       await push(ref(db,'messages'),payload);
 
-     // ✅ hamesha clear karna chahiye (sirf text / image / dono sab case me)
-      msgInput.value = '';
-      fileInput.value = '';
-      imgPreview.style.display = 'none';
-      pendingImage = null;
+      // ✅ input clear
+      msgInput.value='';
+      fileInput.value='';
+    }
 
+    sendBtn.addEventListener('click', sendMessage);
+
+    // ✅ Enter key as send
+    msgInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
     });
 
-    // image select -> preview
+    // image selection preview
     imgBtn.addEventListener('click',()=> fileInput.click());
     fileInput.addEventListener('change', e=>{
       const file=e.target.files[0];
@@ -209,7 +216,7 @@
       }
     }
 
-    // render msg
+    // render message
     function renderMessage(id,msg){
       const row=document.createElement('div');
       row.className='msg-row';
@@ -248,7 +255,7 @@
       renderReactions(id,msg);
     }
 
-    // render reactions counts
+    // render reactions
     function renderReactions(id,msg){
       const row=document.getElementById('msg-'+id);
       if(!row) return;
