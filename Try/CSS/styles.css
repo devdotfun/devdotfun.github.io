@@ -1,1 +1,9 @@
-
+body
+{
+  background: black;
+  colour: white;
+  font-size: 30px;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 50px;
+}
