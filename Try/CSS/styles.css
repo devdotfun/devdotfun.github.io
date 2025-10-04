@@ -5,9 +5,9 @@ body {
   background-attachment: fixed; /* Keeps background fixed while scrolling */
   background-position: center;  /* Centers the image */
   
-  color: blue;
-  font-size: 25px;
+  color: gray;
+  font-size: 50px;
   font-weight: bold;
   text-align: center;
-  margin-top: 30px;
+  margin-top: 75px;
 }
