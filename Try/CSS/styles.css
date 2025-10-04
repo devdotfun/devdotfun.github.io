@@ -1,6 +1,10 @@
-body
-{
+body {
   background-image: url("https://wallpapers.com/images/featured/gojo-satoru-8sz62hlsg1epni6l.jpg");
+  background-size: cover;       /* Makes sure the image covers whole screen */
+  background-repeat: no-repeat; /* Prevents tiling */
+  background-attachment: fixed; /* Keeps background fixed while scrolling */
+  background-position: center;  /* Centers the image */
+  
   color: blue;
   font-size: 25px;
   font-weight: bold;
