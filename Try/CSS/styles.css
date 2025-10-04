@@ -1,6 +1,6 @@
 body
 {
-  background-image: href="https://wallpapers.com/images/featured/gojo-satoru-8sz62hlsg1epni6l.jpg";
+  background-image: url("https://wallpapers.com/images/featured/gojo-satoru-8sz62hlsg1epni6l.jpg");
   color: blue;
   font-size: 25px;
   font-weight: bold;
